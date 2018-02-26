@@ -4,7 +4,11 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.MatchResult;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.jdom2.Content;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -81,7 +85,28 @@ public class TEIBuilder {
     }
     
     public TEIBuilder addTextSegment(String text) {
+    	
+    	text = formatText(text);
     	this.texts.add(text);
+    	
     	return this;
+    }
+
+	protected String formatText(String text) {
+		// bold+italic+underline
+        for (MatchResult r : findRegexMatches(
+                "title=\"(.*?)\">", text)) {
+            text = text.replace(r.group(1), StringEscapeUtils.escapeHtml(r.group(1)));
+        }
+        return text;
+	}
+	
+    public static Iterable<MatchResult> findRegexMatches(String pattern, CharSequence s) {
+        List<MatchResult> results = new ArrayList<>();
+        for (Matcher m = Pattern.compile(pattern)
+                .matcher(s); m.find();) {
+            results.add(m.toMatchResult());
+        }
+        return results;
     }
 }
