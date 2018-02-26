@@ -5,29 +5,30 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
+import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
 import org.goobi.beans.Process;
 import org.goobi.beans.ProjectFileGroup;
 import org.goobi.beans.User;
 import org.goobi.production.enums.PluginType;
-import org.goobi.production.plugin.PluginLoader;
-import org.goobi.production.plugin.interfaces.IAdministrationPlugin;
 import org.goobi.production.plugin.interfaces.IExportPlugin;
 import org.goobi.production.plugin.interfaces.IPlugin;
 
-import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
-
 import de.intranda.goobi.plugins.vocabulary.Field;
 import de.intranda.goobi.plugins.vocabulary.Record;
+import de.intranda.goobi.plugins.vocabulary.VocabularyManager;
 import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.config.ConfigurationHelper;
 import de.sub.goobi.export.download.ExportMets;
 import de.sub.goobi.helper.FilesystemHelper;
 import de.sub.goobi.helper.Helper;
 import de.sub.goobi.helper.NIOFileUtils;
+import de.sub.goobi.helper.VariableReplacer;
 import de.sub.goobi.helper.exceptions.DAOException;
 import de.sub.goobi.helper.exceptions.ExportFileException;
 import de.sub.goobi.helper.exceptions.SwapException;
@@ -96,7 +97,7 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
 
         Fileformat gdzfile;
         ExportFileformat newfile = MetadatenHelper.getExportFileformatByName(process.getProjekt().getFileFormatDmsExport(), process.getRegelsatz());
-        File exportfolder = new File(ConfigPlugins.getPluginConfig(this).getString("exportFolder"));
+        
         
         try {
             gdzfile = process.readMetadataFile();
@@ -109,6 +110,11 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
             return false;
         }
 
+        VariableReplacer replacer = new VariableReplacer(gdzfile.getDigitalDocument(), this.myPrefs, process, null);
+        String path = replacer.replace(process.getProjekt().getDmsImportRootPath());
+        File exportfolder = new File(path);
+//      File exportfolder = new File(ConfigPlugins.getPluginConfig(this).getString("exportFolder"));
+        
         DocStruct logical = gdzfile.getDigitalDocument().getLogicalDocStruct();
         if (logical.getType().isAnchor()) {
             logical = logical.getAllChildren().get(0);
@@ -118,7 +124,6 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
             	for (DocStruct ds : logical.getAllChildren()) {
             		log.debug("docstruct is " +  ds.getType().getName());
             		for (Metadata md : ds.getAllMetadata()) {
-            			System.out.println("-- " + md.getType().getName());
             			if (md.getType().getName().equals("Transcription_de") ||
             					md.getType().getName().equals("Transcription_en") ||
             					md.getType().getName().equals("Transcription_fr") ||
@@ -296,11 +301,25 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
      */
     private String enrichMetadataWithVocabulary(String value) {
     		try {
-    			VocabularyPlugin vocabularyPlugin = (VocabularyPlugin) PluginLoader.getPluginByTitle(PluginType.Administration, "intranda_admin_vocabulary");
-    			vocabularyPlugin.getVm().loadVocabulary("Wiener Library Glossary");
+    			
+    			// initialise configuration for vocabulary manager file
+    			String configfile = "plugin_VocabularyPlugin.xml";
+    			XMLConfiguration config;
+    			try {
+    				config = new XMLConfiguration(new Helper().getGoobiConfigDirectory() + configfile);
+    			} catch (ConfigurationException e) {
+    				logger.error(e);
+    				config = new XMLConfiguration();
+    			}
+    			config.setListDelimiter('&');
+    			config.setReloadingStrategy(new FileChangedReloadingStrategy());
+    			config.setExpressionEngine(new XPathExpressionEngine());
+    			
+    			// initialise vocabular manager and load correct vocabulary
+    			VocabularyManager vm = new VocabularyManager(config);
+    			vm.loadVocabulary("Wiener Library Glossary");
     			String newvalue = value;
-    			for (Record record : vocabularyPlugin.getVm().getVocabulary().getRecords()) {
-    				System.out.println(record.getTitle());
+    			for (Record record : vm.getVocabulary().getRecords()) {
     				List<String> keywords = null;
     				String description = "";
     				// first get the right fields from the record
@@ -325,7 +344,7 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
             	}
     			return newvalue;
         } catch (Exception e) {
-            logger.error("Can't load admin vocabulary plugin", e);
+            logger.error("Can't load vocabulary management", e);
             return value;
         }
 	}
