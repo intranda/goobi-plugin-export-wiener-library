@@ -12,5 +12,6 @@
 	<classpathentry kind="lib" path="/Goobi/webapp/WEB-INF/lib/lombok.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/goobi-plugin-administration-vocabulary"/>
 	<classpathentry kind="lib" path="/Goobi/webapp/WEB-INF/lib/jdom-2.0.5.jar"/>
+	<classpathentry kind="lib" path="/Goobi/webapp/WEB-INF/lib/commons-lang-2.4.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

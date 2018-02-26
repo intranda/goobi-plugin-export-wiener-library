@@ -14,6 +14,10 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
+import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
 import org.goobi.beans.Process;
 import org.goobi.beans.ProjectFileGroup;
 import org.goobi.beans.User;
@@ -28,12 +32,14 @@ import org.jdom2.output.XMLOutputter;
 import de.intranda.goobi.ocr.tei.TEIBuilder;
 import de.intranda.goobi.plugins.vocabulary.Field;
 import de.intranda.goobi.plugins.vocabulary.Record;
+import de.intranda.goobi.plugins.vocabulary.VocabularyManager;
 import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.config.ConfigurationHelper;
 import de.sub.goobi.export.download.ExportMets;
 import de.sub.goobi.helper.FilesystemHelper;
 import de.sub.goobi.helper.Helper;
 import de.sub.goobi.helper.NIOFileUtils;
+import de.sub.goobi.helper.VariableReplacer;
 import de.sub.goobi.helper.exceptions.DAOException;
 import de.sub.goobi.helper.exceptions.ExportFileException;
 import de.sub.goobi.helper.exceptions.SwapException;
@@ -91,6 +97,7 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
 	public void setExportImages(boolean exportImages) {
 		exportWithImages = exportImages;
 	}
+
 
 	/**
 	 * Start the entire export of images, fulltext and the metadata
@@ -394,4 +401,5 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
 			return value;
 		}
 	}
+ 
 }
