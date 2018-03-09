@@ -125,7 +125,7 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
         VariableReplacer replacer = new VariableReplacer(gdzfile.getDigitalDocument(), this.myPrefs, process, null);
         String path = replacer.replace(process.getProjekt().getDmsImportRootPath());
         File exportfolder = new File(path);
-//      File exportfolder = new File(ConfigPlugins.getPluginConfig(this).getString("exportFolder"));
+//      File exportfolder = new File(ConfigPlugins.getPluginConfig(PLUGIN_NAME).getString("exportFolder"));
         
         DocStruct logical = gdzfile.getDigitalDocument().getLogicalDocStruct();
         if (logical.getType().isAnchor()) {
@@ -377,7 +377,7 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
     		try {
     			
     			// initialise configuration for vocabulary manager file
-    			String configfile = "plugin_VocabularyPlugin.xml";
+    			String configfile = "plugin_intranda_admin_vocabulary.xml";
     			XMLConfiguration config;
     			try {
     				config = new XMLConfiguration(new Helper().getGoobiConfigDirectory() + configfile);
