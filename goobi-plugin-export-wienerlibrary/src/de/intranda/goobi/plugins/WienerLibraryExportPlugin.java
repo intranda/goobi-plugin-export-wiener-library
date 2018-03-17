@@ -377,7 +377,7 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
     		try {
     			
     			// initialise configuration for vocabulary manager file
-    			String configfile = "plugin_intranda_admin_vocabulary.xml";
+    			String configfile = "plugin_intranda_administration_vocabulary.xml";
     			XMLConfiguration config;
     			try {
     				config = new XMLConfiguration(new Helper().getGoobiConfigDirectory() + configfile);
@@ -386,7 +386,6 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
     				config = new XMLConfiguration();
     			}
     			config.setListDelimiter('&');
-    			config.setReloadingStrategy(new FileChangedReloadingStrategy());
     			config.setExpressionEngine(new XPathExpressionEngine());
     			
     			// initialise vocabular manager and load correct vocabulary
