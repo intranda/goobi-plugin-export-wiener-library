@@ -22,7 +22,7 @@ import lombok.extern.log4j.Log4j;
 public class TEIBuilder {
 	
 
-    public static final Namespace TEI = Namespace.getNamespace("http://www.tei-c.org/ns/1.0");
+    public static final Namespace TEI = null;//Namespace.getNamespace("http://www.tei-c.org/ns/1.0");
     protected static final Namespace XML = Namespace.getNamespace("xml", "http://www.w3.org/XML/1998/namespace");
 
     public static final String SECTION_ELEMENT_NAME = "seg";
