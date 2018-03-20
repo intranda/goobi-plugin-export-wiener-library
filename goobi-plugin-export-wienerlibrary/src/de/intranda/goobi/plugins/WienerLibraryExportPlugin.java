@@ -135,24 +135,27 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
         if (logical.getAllChildren() != null && !logical.getAllChildren().isEmpty()) {
             	for (DocStruct ds : logical.getAllChildren()) {
             		log.debug("docstruct is " +  ds.getType().getName());
-            		for (Metadata md : ds.getAllMetadata()) {
-            			if (md.getType().getName().equals("Transcription_de") ||
-            					md.getType().getName().equals("Transcription_en") ||
-            					md.getType().getName().equals("Transcription_fr") ||
-            					md.getType().getName().equals("Transcription_nl") ||
-            					md.getType().getName().equals("Transcription_al") ||
-            					md.getType().getName().equals("Transcription_it") ||
-            					md.getType().getName().equals("Translation_de") ||
-            					md.getType().getName().equals("Translation_en") ||
-            					md.getType().getName().equals("Translation_fr") ||
-            					md.getType().getName().equals("Translation_nl") ||
-            					md.getType().getName().equals("Translation_al") ||
-            					md.getType().getName().equals("Translation_it")) {
-            				String value = md.getValue();
-            				String newValue = enrichMetadataWithVocabulary(value);
-            				md.setValue(newValue);
-            			}
-				}
+            		if (ds.getAllMetadata()!=null) {
+                		for (Metadata md : ds.getAllMetadata()) {
+                			if (md.getType().getName().equals("Transcription_de") ||
+                					md.getType().getName().equals("Transcription_en") ||
+                					md.getType().getName().equals("Transcription_fr") ||
+                					md.getType().getName().equals("Transcription_nl") ||
+                					md.getType().getName().equals("Transcription_al") ||
+                					md.getType().getName().equals("Transcription_it") ||
+                					md.getType().getName().equals("Translation_de") ||
+                					md.getType().getName().equals("Translation_en") ||
+                					md.getType().getName().equals("Translation_fr") ||
+                					md.getType().getName().equals("Translation_nl") ||
+                					md.getType().getName().equals("Translation_al") ||
+                					md.getType().getName().equals("Translation_it")) {
+                				String value = md.getValue();
+                				String newValue = enrichMetadataWithVocabulary(value);
+                				md.setValue(newValue);
+                			}
+                		}
+                }
+
             	}
         }
 
@@ -186,18 +189,20 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
 			for (DocStruct ds : logical.getAllChildren()) {
 				log.debug("docstruct is " + ds.getType().getName());
 				log.debug("docstruct id is " + ds.getIdentifier());
-				for (Metadata md : ds.getAllMetadata()) {
-					Matcher matcher = fulltextMetadataPattern.matcher(md.getType().getName());
-					if(matcher.matches()) {
-						String language = matcher.group(1);
-						List<String> list = texts.get(language);
-						if(list == null) {
-							list = new ArrayList<>();
-							texts.put(language, list);
-						}
-						list.add(md.getValue());
-					}
-				}
+				if (ds.getAllMetadata()!=null) {
+        				for (Metadata md : ds.getAllMetadata()) {
+        					Matcher matcher = fulltextMetadataPattern.matcher(md.getType().getName());
+        					if(matcher.matches()) {
+        						String language = matcher.group(1);
+        						List<String> list = texts.get(language);
+        						if(list == null) {
+        							list = new ArrayList<>();
+        							texts.put(language, list);
+        						}
+        						list.add(md.getValue());
+        					}
+        				}
+	             }
 			}
 			for (String language : texts.keySet()) {
 				String filename = title + "_tei_" + language + ".xml";
