@@ -61,12 +61,12 @@ public class TEIBuilder {
         Element body = new Element("body", TEI);
         List<Content> content;
         if(texts.size() == 1) {
-        	content = new SAXBuilder().build(new StringReader("<div>" + texts.get(0) + "</div>")).getRootElement().removeContent();
+        	content = new SAXBuilder().build(new StringReader("<div>" + unescape(texts.get(0)) + "</div>")).getRootElement().removeContent();
         } else {
         	content = new ArrayList<>();
         	for (String text : texts) {
 				Element section = new Element(SECTION_ELEMENT_NAME, TEI);
-	        	section.addContent(new SAXBuilder().build(new StringReader("<div>" + text + "</div>")).getRootElement().removeContent());
+	        	section.addContent(new SAXBuilder().build(new StringReader("<div>" + unescape(text) + "</div>")).getRootElement().removeContent());
 	        	content.add(section);
 			}
         }
@@ -74,6 +74,16 @@ public class TEIBuilder {
         return body;
     }
     
+    private String unescape(String text) {
+        text = text.replace("&lt;", "!!<<!!");
+        text = text.replace("&gt;", "!!>>!!");
+        text = StringEscapeUtils.unescapeHtml(text);
+        text = text.replace("&", "&amp;");
+        text = text.replace("!!<<!!", "&lt;");
+        text = text.replace("!!>>!!", "&gt;");
+        return text;
+    }
+
     public TEIBuilder setLanguage(String language) {
     	this.language = language;
     	return this;
