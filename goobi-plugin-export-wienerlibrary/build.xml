@@ -2,18 +2,20 @@
 
 <!-- ADJUST PROJECT NAME, FILENAME AND INCLUDED CLASSES FOR JENKINS IF YOU COPY THIS FILE TO A NEW PROJECT-->
 
-<project name="Goobi Export Plugin for Wiener Library" basedir="." default="deploy">
+<project name="Goobi workflow export plugin for Wiener Library" basedir="." default="deploy">
 
 	<!-- ================================= 
 	        properties             
 	     ================================= -->
 	<property name="filename" value="plugin_intranda_export_wienerlibrary" />
 	<property name="dir.build" value="bin" />
+    <property name="dir.src" value="src" />
+    <property name="dir.test" value="test/src" />
 	<property name="dir.deploy" value="deploy" />
 	<property name="pluginFolderWin" value="C:/Goobi/plugins/export/" />
 	<property name="pluginFolderUnix" value="/opt/digiverso/goobi/plugins/export/" />
-
-	<path id="classpath">
+    
+    <path id="classpath">
 	    <fileset dir="/opt/digiverso/goobilibs/lib"/>
 	    <fileset dir="/opt/digiverso/libs" />
 	</path>
@@ -67,37 +69,33 @@
 	</target>
 	<target name="linux" if="isUnix">
 		<echo>Using Linux path: ${pluginFolderUnix}</echo>
-		<copy tofile="${pluginFolderUnix}/${filename}-${git.revision}.jar" file="${dir.deploy}/${filename}-${git.revision}.jar" overwrite="true" />
+        <copy tofile="${pluginFolderUnix}/${filename}.jar" file="${dir.deploy}/${filename}-${git.revision}.jar" overwrite="true" />
+		<copy tofile="${pluginFolderUnix}/${filename}-lib.jar" file="${dir.deploy}/${filename}-${git.revision}-lib.jar" overwrite="true" />
+		<!-- 
+       	<copy tofile="${pluginFolderUnix}/../GUI/${filename}-GUI.jar" file="${dir.deploy}/${filename}-GUI.jar" overwrite="true" />
+		-->
+		<copy tofile="${pluginFolderUnix}/${filename}-GUI.jar" file="${dir.deploy}/${filename}-GUI.jar" overwrite="true" />
+
 	</target>
 	<target name="win32" if="isWindows">
 		<echo>Using Windows path: ${pluginFolderWin}</echo>
-		<copy tofile="${pluginFolderWin}$${filename}-${git.revision}.jar" file="${dir.deploy}/${filename}-${git.revision}.jar" overwrite="true" />
+        <copy tofile="${pluginFolderWin}$${filename}-${git.revision}.jar" file="${dir.deploy}/${filename}-${git.revision}.jar" overwrite="true" />
+        <copy tofile="${pluginFolderWin}/${filename}-GUI.jar" file="${dir.deploy}/${filename}-GUI.jar" overwrite="true" />
+
 	</target>
 
 	<!-- ================================= 
          Compile the sources
 	     ================================= -->
 
-	<target name="compile-jenkins" if="${jenkins}">
-		<echo>Using jenkins compiler</echo>
-		<javac destdir="${dir.build}" includeantruntime="false" debug="true" debuglevel="lines,vars,source" >
-			<classpath refid="classpath" />
-			<compilerarg value="-Xlint" />
-			<src path="src" />
-			<!--			<src path="../Goobi/WEB-INF/src" /> -->
-<!--		<src path="../Goobi/src" />
-			<src path="../Goobi/src-dubious" />			-->
-		</javac>
-	</target>
-
-	<target name="compile-eclipse" unless="jenkins">
-		<echo>Using eclipse compiler</echo>
-		<javac destdir="${dir.build}" includeantruntime="false" debug="true" debuglevel="lines,vars,source">
-			<classpath refid="classpath" />
-			<compilerarg value="-Xlint" />
-			<src path="src" />
-		</javac>
-	</target>
+    <target name="compile">
+        <echo>Using eclipse compiler</echo>
+        <javac destdir="${dir.build}" includeantruntime="false" source="1.7" target="1.7">
+            <classpath refid="classpath" />
+            <compilerarg value="-Xlint" />
+            <src path="src" />
+        </javac>
+    </target>
 
 	<!-- ================================= 
          Include the libraries
@@ -125,25 +123,38 @@
          Compile the jar
 	     ================================= -->
 
-	<target name="jar-jenkins" if="jenkins">
-		<jar destfile="${dir.deploy}/${filename}-${git.revision}.jar">
-			<manifest>
-				<attribute name="Main-Class" value="de.intranda.goobi.PluginInfo" />
-				<attribute name="Class-Path" value="${libs.project}" />
-			</manifest>
-			<fileset dir="bin"/>
-		</jar>
-	</target>
+    <target name="jar" depends="libs">
+        <jar destfile="${dir.deploy}/${filename}-${git.revision}.jar">
+            <manifest>
+                <attribute name="Main-Class" value="de.intranda.goobi.PluginInfo" />
+                <attribute name="Class-Path" value="${libs.project}" />
+            </manifest>
+            <fileset dir="bin">
+                    <include name="**/*Plugin.class" />
+            </fileset>
+        </jar>
+    	
+	    	<jar destfile="${dir.deploy}/${filename}-${git.revision}-lib.jar">
+	        <manifest>
+	            <attribute name="Main-Class" value="de.intranda.goobi.PluginInfo" />
+	            <attribute name="Class-Path" value="${libs.project}" />
+	        </manifest>
+	        <fileset dir="bin">
+	                <exclude name="**/*Plugin.class" />
+	        </fileset>
+	    </jar>
+    </target>
 
-	<target name="jar-eclipse" unless="jenkins">
-		<jar destfile="${dir.deploy}/${filename}-${git.revision}.jar">
-			<manifest>
-				<attribute name="Main-Class" value="de.intranda.goobi.PluginInfo" />
-				<attribute name="Class-Path" value="${libs.project}" />
-			</manifest>
-			<fileset dir="bin" />
-		</jar>
-	</target>
+    <target name="jar-gui">
+        <jar destfile="${dir.deploy}/${filename}-GUI.jar">
+            <manifest>
+                <attribute name="Class-Path" value="${libs.project}" />
+            </manifest>
+            <fileset dir="GUI" />
+            
+
+        </jar>
+    </target>
 
 	<!-- ================================= 
 	              RUNNABLE JAR
@@ -151,8 +162,7 @@
 
 	<target name="jar.runnable" depends="git.revision">
 		<echo>Compile sources ...</echo>
-		<antcall target="compile-jenkins" />
-		<antcall target="compile-eclipse" />
+        <antcall target="compile" />
 
 		<echo>Generate Plugin list</echo>
 		<pathconvert property="plugins.project" pathsep=" ">
@@ -174,8 +184,8 @@
 		<echo file="${dir.build}/de/intranda/goobi/plugins.txt">${plugins.project}  -----------------------------------------------------  Git-revision: ${git.revision}</echo>
 
 		<echo>Generating jar file: ${dir.deploy}/${filename}-${git.revision}.jar</echo>
-		<antcall target="jar-jenkins" />
-		<antcall target="jar-eclipse" />
+        <antcall target="jar" />
+        <antcall target="jar-gui" />
 	</target>
 
 	<!-- ================================= 
@@ -184,8 +194,10 @@
 
 	<!-- Run all targets in appropiate order for clean compile-->
 	<target name="dist" depends="clean, createDirs, git.revision, jar.runnable" description="Creating everything for Jenkins.">
-	    <copy tofile="${dir.deploy}/plugin_HaabExportPlugin.xml" file="plugin_HaabExportPlugin.xml" />
+	  <copy tofile="${dir.deploy}/plugin_intranda_export_wienerlibrary.xml" file="plugin_intranda_export_wienerlibrary.xml" />
 	</target>
+
+
 	<!-- ================================= 
                   DEPLOY
 	     ================================= -->
