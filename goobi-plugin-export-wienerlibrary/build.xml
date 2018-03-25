@@ -71,16 +71,13 @@
 		<echo>Using Linux path: ${pluginFolderUnix}</echo>
         <copy tofile="${pluginFolderUnix}/${filename}.jar" file="${dir.deploy}/${filename}-${git.revision}.jar" overwrite="true" />
 		<copy tofile="${pluginFolderUnix}/${filename}-lib.jar" file="${dir.deploy}/${filename}-${git.revision}-lib.jar" overwrite="true" />
-		<!-- 
-       	<copy tofile="${pluginFolderUnix}/../GUI/${filename}-GUI.jar" file="${dir.deploy}/${filename}-GUI.jar" overwrite="true" />
-		-->
-		<copy tofile="${pluginFolderUnix}/${filename}-GUI.jar" file="${dir.deploy}/${filename}-GUI.jar" overwrite="true" />
+		<!--copy tofile="${pluginFolderUnix}/${filename}-GUI.jar" file="${dir.deploy}/${filename}-GUI.jar" overwrite="true" /-->
 
 	</target>
 	<target name="win32" if="isWindows">
 		<echo>Using Windows path: ${pluginFolderWin}</echo>
         <copy tofile="${pluginFolderWin}$${filename}-${git.revision}.jar" file="${dir.deploy}/${filename}-${git.revision}.jar" overwrite="true" />
-        <copy tofile="${pluginFolderWin}/${filename}-GUI.jar" file="${dir.deploy}/${filename}-GUI.jar" overwrite="true" />
+        <!--copy tofile="${pluginFolderWin}/${filename}-GUI.jar" file="${dir.deploy}/${filename}-GUI.jar" overwrite="true" /-->
 
 	</target>
 
@@ -145,7 +142,7 @@
 	    </jar>
     </target>
 
-    <target name="jar-gui">
+    <!--target name="jar-gui">
         <jar destfile="${dir.deploy}/${filename}-GUI.jar">
             <manifest>
                 <attribute name="Class-Path" value="${libs.project}" />
@@ -154,7 +151,7 @@
             
 
         </jar>
-    </target>
+    </target-->
 
 	<!-- ================================= 
 	              RUNNABLE JAR
