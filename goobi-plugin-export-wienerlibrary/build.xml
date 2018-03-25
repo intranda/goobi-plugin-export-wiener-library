@@ -182,7 +182,7 @@
 
 		<echo>Generating jar file: ${dir.deploy}/${filename}-${git.revision}.jar</echo>
         <antcall target="jar" />
-        <antcall target="jar-gui" />
+        <!--antcall target="jar-gui" /-->
 	</target>
 
 	<!-- ================================= 
