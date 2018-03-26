@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.FileUtils;
 import org.jdom2.Document;
 import org.jdom2.JDOMException;
 import org.jdom2.output.XMLOutputter;
@@ -33,9 +34,11 @@ public class TEIBuilderTest {
 	public void testReadMets() throws PreferencesException, ReadException, JDOMException, IOException {
 	    File meta = new File("test/resources/meta_2.xml");
 	    File ruleset = new File("test/resources/ruleset.xml");
-	    File output = new File("test/output.xml");
+	    File output = new File("test/output");
 	    if(output.exists()) {
-	        output.delete();
+	        FileUtils.cleanDirectory(output);
+	    } else {
+	        output.mkdir();
 	    }
 	    Prefs prefs = new Prefs();
 	    prefs.loadPrefs(ruleset.getAbsolutePath());
@@ -56,6 +59,6 @@ public class TEIBuilderTest {
 	    });
 	    Document doc = builder.build();
 	    XMLOutputter writer = new XMLOutputter();
-        writer.output(builder.build(), new FileWriter(output));
+        writer.output(builder.build(), new FileWriter(new File(output, "tei_" + language + ".xml")));
 	}
 }

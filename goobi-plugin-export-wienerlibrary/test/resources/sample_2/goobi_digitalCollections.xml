@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DigitalCollections>
+	<project>
+		<name>Beispielprojekt</name>
+		<DigitalCollection>Handschriften</DigitalCollection>
+		<DigitalCollection>Varia</DigitalCollection>
+	</project>
+
+	<project>
+		<name>LayoutWizzard</name>
+		<DigitalCollection default="true">Varia</DigitalCollection>
+	</project>
+
+	<project>
+		<name>ProjektVorGoobi</name>
+		<DigitalCollection>OffeneProjekte</DigitalCollection>
+	</project>
+
+	<project>
+		<name>Nachschlagewerke</name>
+		<DigitalCollection>Paedagogische Nachschlagewerke</DigitalCollection>
+	</project>
+
+	<project>
+		<name>GEI WorldViews Schulbücher</name>
+		<DigitalCollection>WorldViews</DigitalCollection>
+		<DigitalCollection>EurViews</DigitalCollection>
+		<DigitalCollection>Schulbücher</DigitalCollection>
+	</project>
+	<project>
+		<name>GEI WorldViews Quellen</name>
+		<DigitalCollection>WorldViews</DigitalCollection>
+		<DigitalCollection>EurViews</DigitalCollection>
+		<DigitalCollection default="true">Quellen
+		</DigitalCollection>
+	</project>
+	<project>
+		<name>GEI WorldViews Beiträge</name>
+		<DigitalCollection>WorldViews</DigitalCollection>
+		<DigitalCollection>EurViews</DigitalCollection>
+		<DigitalCollection default="true">Beiträge
+		</DigitalCollection>
+	</project>
+</DigitalCollections>
