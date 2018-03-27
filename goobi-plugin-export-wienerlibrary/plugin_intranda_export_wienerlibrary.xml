@@ -5,6 +5,7 @@
         <fileGroup>
             <name>TEI</name>
             <location>file:///opt/digiverso/viewer/tei/</location>
+            <mimeType>text/xml</mimeType>
         </fileGroup>
     </fullText>
 </config_plugin>
