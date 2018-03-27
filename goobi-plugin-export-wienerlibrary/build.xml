@@ -20,12 +20,12 @@
 	<path id="classpath">
 		<fileset dir="/opt/digiverso/goobilibs/lib"/>
 		<fileset dir="/opt/digiverso/libs" />
-		<fileset dir="lib" />
 	</path>
 
 	<path id="classpath-test">
-	    <fileset dir="/opt/digiverso/goobilibs/lib"/>
+		<fileset dir="/opt/digiverso/goobilibs/lib"/>
 		<fileset dir="/opt/digiverso/libs" />
+		<fileset dir="lib" />
 		<pathelement location="${dir.build}" />
 		<pathelement location="/opt/digiverso/junit/junit.jar" />
 		<pathelement location="/opt/digiverso/junit/hamcrest-all-1.3.jar" />
