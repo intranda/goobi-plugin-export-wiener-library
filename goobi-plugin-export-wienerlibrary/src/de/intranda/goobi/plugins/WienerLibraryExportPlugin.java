@@ -305,7 +305,9 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
 
     private void writeOcrFiles(Process process, String exportFolderPath, String title, DocStruct logical) throws WriteException, IOException {
         Path exportFolder = Paths.get(exportFolderPath);
-        Files.createDirectory(exportFolder);
+        if(!Files.exists(exportFolder)) {            
+            Files.createDirectory(exportFolder);
+        }
         Pattern fulltextMetadataPattern = Pattern.compile(FULLTEXT_METADATA_REGEX);
 
         if (logical.getAllChildren() != null && !logical.getAllChildren().isEmpty()) {
