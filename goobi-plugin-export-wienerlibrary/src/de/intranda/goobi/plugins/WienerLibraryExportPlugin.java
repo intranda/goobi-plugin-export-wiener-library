@@ -194,7 +194,7 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
 
         // now export the Mets file
         File exportFile = new File(exportfolder + File.separator + atsPpnBand + ".xml");
-        File tempFile = Files.createTempFile(atsPpnBand + "_", ".xml").toFile();
+        File tempFile = Files.createTempFile(atsPpnBand + "__", ".xml").toFile();
         System.out.println("Creating temp file " + tempFile.getAbsolutePath());
         writeMetsFile(process, tempFile.getAbsolutePath(), gdzfile, false);
         addFileGroup(tempFile.getAbsolutePath(), getTEIFiles(teiFolder), getFileGroupName(), getFileGroupFolder(), getFileGroupMimeType());
