@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mets:mets xmlns:mets="http://www.loc.gov/METS/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OBJID="null" xsi:schemaLocation="http://www.loc.gov/standards/premis/ http://www.loc.gov/standards/premis/v2/premis-v2-0.xsd http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-7.xsd http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd http://www.loc.gov/standards/mix/ http://www.loc.gov/standards/mix/mix.xsd">
-  <mets:metsHdr CREATEDATE="2018-03-27T06:55:16Z">
+  <mets:metsHdr CREATEDATE="2018-03-27T07:14:56Z">
     <mets:agent OTHERTYPE="SOFTWARE" ROLE="CREATOR" TYPE="OTHER">
       <mets:name>Goobi - ugh-3.0-847ece1 - 08−February−2018</mets:name>
       <mets:note>Goobi</mets:note>
@@ -11,37 +11,24 @@
       <mets:xmlData>
         <mods:mods xmlns:mods="http://www.loc.gov/mods/v3">
           <mods:titleInfo>
-            <mods:title>Report by Dr. Ernst Alban entitled "The Jews in Pomerania"</mods:title>
+            <mods:title>Collection of newspaper cuttings some with death notices of family members</mods:title>
           </mods:titleInfo>
           <mods:recordInfo>
-            <mods:recordIdentifier source="gbv-ppn">104425</mods:recordIdentifier>
+            <mods:recordIdentifier source="gbv-ppn">73416</mods:recordIdentifier>
           </mods:recordInfo>
-          <mods:classification authority="ivdcc">Testimonies</mods:classification>
-          <mods:language>
-            <mods:languageTerm authority="iso639-2b" type="code">German</mods:languageTerm>
-          </mods:language>
-          <mods:language>
-            <mods:languageTerm authority="iso639-2b" type="code">English</mods:languageTerm>
-          </mods:language>
+          <mods:classification authority="ivdcc">November pogrom objects</mods:classification>
           <mods:location>
-            <mods:shelfLocator>1656/1/1/62</mods:shelfLocator>
+            <mods:shelfLocator>1023/1/11</mods:shelfLocator>
           </mods:location>
           <mods:physicalDescription>
-            <mods:extent>12 pieces</mods:extent>
+            <mods:extent>1 folder</mods:extent>
           </mods:physicalDescription>
           <mods:extension>
             <intranda:intranda xmlns:intranda="http://intranda.com/">
-              <intranda:CoverageDates>1955-3</intranda:CoverageDates>
-              <intranda:CreditLine>Courtesy of The Wiener Library</intranda:CreditLine>
-              <intranda:Abstract><![CDATA[<p>Original title: "Die Juden in Pommern"</p> <p>Recorded by: author</p> <p>Original Form and Contents: (In two parts: A. “Die Juden in Pommern bis 1933”, B. “Die Juden in Pommern seit 1933") dealing with the remarkable economic prosperity of the Pomeranian Jews up to 1933 and their gradual well planned elimination thereafter.</p>]]></intranda:Abstract>
-              <intranda:subject>Rescue</intranda:subject>
+              <intranda:CoverageDates>1900 - 1954</intranda:CoverageDates>
+              <intranda:Abstract>Collection of newspaper cuttings some with death notices of family members, some reporting on the account of the alleged ritual murder of Eric Winter and the subsequent anti-Jewish pogrom in Konitz (Chodnice, Southwest of Danzig)&lt;br /&gt;</intranda:Abstract>
             </intranda:intranda>
           </mods:extension>
-          <mods:subject>
-            <mods:geographic>Szczecin</mods:geographic>
-            <mods:geographic>Poland</mods:geographic>
-            <mods:geographic>Pomerania (region)</mods:geographic>
-          </mods:subject>
         </mods:mods>
       </mets:xmlData>
     </mets:mdWrap>
@@ -81,10 +68,7 @@
     </mets:fileGrp>
   </mets:fileSec>
   <mets:structMap TYPE="LOGICAL">
-    <mets:div ADMID="AMD" DMDID="DMDLOG_0000" ID="LOG_0000" LABEL="Report by Dr. Ernst Alban entitled &quot;The Jews in Pomerania&quot;" TYPE="Item">
-      <mets:div ID="LOG_0001" TYPE="Summary" />
-      <mets:div ID="LOG_0002" TYPE="Testimony" />
-    </mets:div>
+    <mets:div ADMID="AMD" DMDID="DMDLOG_0000" ID="LOG_0000" LABEL="Collection of newspaper cuttings some with death notices of family members" TYPE="Item" />
   </mets:structMap>
   <mets:structMap TYPE="PHYSICAL">
     <mets:div ID="PHYS_0000" TYPE="physSequence">
@@ -93,6 +77,5 @@
   </mets:structMap>
   <mets:structLink>
     <mets:smLink xmlns:xlink="http://www.w3.org/1999/xlink" xlink:to="PHYS_0001" xlink:from="LOG_0000" />
-    <mets:smLink xmlns:xlink="http://www.w3.org/1999/xlink" xlink:to="PHYS_0001" xlink:from="LOG_0001" />
   </mets:structLink>
 </mets:mets>

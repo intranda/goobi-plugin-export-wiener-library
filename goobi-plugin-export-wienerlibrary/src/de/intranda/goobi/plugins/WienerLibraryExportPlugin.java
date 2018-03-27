@@ -192,9 +192,15 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
         // now export the Mets file
         File exportFile = new File(exportfolder + File.separator + atsPpnBand + ".xml");
         File tempFile = Files.createTempFile(atsPpnBand + "__", ".xml").toFile();
-        System.out.println("Creating temp file " + tempFile.getAbsolutePath());
         writeMetsFile(process, tempFile.getAbsolutePath(), gdzfile, false);
+        if(tempFile.exists()) {
+            logger.debug("Temporary export mets file written: " + tempFile.getAbsolutePath());
+        } else {
+            Helper.setFehlerMeldung("Export canceled, Process: " + process.getTitel(), "Failed to write temporary export mets file");
+            return false;
+        }
         addFileGroup(tempFile.getAbsolutePath(), getTEIFiles(teiFolder), getFileGroupName(), getFileGroupFolder(), getFileGroupMimeType());
+        logger.debug("Moving temporary file " + tempFile + " to export file location " + exportFile);
         FileUtils.moveFile(tempFile, exportFile);
         return true;
     }
@@ -359,7 +365,9 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
             builder.addTextSegment(text);
         }
         XMLOutputter writer = new XMLOutputter();
+        logger.debug("Write tei file to " + filepath);
         writer.output(builder.build(), new FileWriter(filepath.toFile()));
+        logger.debug(filepath + " written");
     }
 
     /**
