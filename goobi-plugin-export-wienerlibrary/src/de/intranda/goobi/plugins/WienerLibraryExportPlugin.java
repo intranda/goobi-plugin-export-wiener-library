@@ -595,14 +595,6 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
                     String span = "<span>" + newvalue.substring(location.x, location.y) + note + "</span>";
                     newvalue = newvalue.substring(0, location.x) + span + newvalue.substring(location.y);
                 }
-//                for (String word : newvalue.split("[\\s,;\\.!?\'`´()\"]+")) {
-//                    if (keywords.contains(word)) {
-//                        sb.append(" <span title=\"" + description + "\">" + word + "</span>");
-//                    } else {
-//                        sb.append(" " + word.trim());
-//                    }
-//                }
-//                newvalue = sb.toString();
             }
             return newvalue;
         } catch (Exception e) {

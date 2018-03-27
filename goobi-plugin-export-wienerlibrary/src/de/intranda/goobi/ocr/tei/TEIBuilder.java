@@ -62,12 +62,12 @@ public class TEIBuilder {
         Element body = new Element("body", TEI);
         List<Content> content;
         if(texts.size() == 1) {
-            String text = new HtmlToTEIConvert(ConverterMode.resource).convert(texts.get(0));
+            String text = texts.get(0);//new HtmlToTEIConvert(ConverterMode.resource).convert(texts.get(0));
         	content = new SAXBuilder().build(new StringReader("<div>" + unescape(text) + "</div>")).getRootElement().removeContent();
         } else {
         	content = new ArrayList<>();
         	for (String text : texts) {
-        	    text = new HtmlToTEIConvert(ConverterMode.resource).convert(text);
+//        	    text = new HtmlToTEIConvert(ConverterMode.resource).convert(text);
 				Element section = new Element(SECTION_ELEMENT_NAME, TEI);
 	        	section.addContent(new SAXBuilder().build(new StringReader("<div>" + unescape(text) + "</div>")).getRootElement().removeContent());
 	        	content.add(section);

@@ -210,10 +210,6 @@ public class HtmlToTEIConvert {
         for (MatchResult r : findRegexMatches("<a\\s*(\\w+=\".*\"\\s*)*>(.*?)</a>", text)) {
             text = text.replace(r.group(), r.group(2));
         }
-        
-        for (MatchResult r : findRegexMatches("<span title=\"([^>]*)\">([^<]*)<\\/span>", text)) {
-            text = text.replace(r.group(), r.group(2));
-        }
 
         //add <head></head> to every div that doesn't start with head
         //		if(mode.equals(ConverterMode.annotation)) {		
@@ -333,7 +329,7 @@ public class HtmlToTEIConvert {
 
     public List<Footnote> getAllFootnoteTypes() {
         List<Footnote> list = new ArrayList<>();
-//        list.add(new SimpleFootnote("<span title=\"[^>]*\">([^<]*)<\\/span>", "<span title=\"([^>]*)\">[^<]*<\\/span>"));
+        list.add(new SimpleFootnote("<span title=\"[^>]*\">([^<]*)<\\/span>", "<span title=\"([^>]*)\">[^<]*<\\/span>"));
 //        list.add(new SimpleFootnote("(<a.*?#_ftn\\d.*?\\[(\\d+)\\].*?<\\/a>)",
 //                "<p><a.*?#_ftnref\\d.*?\\[§\\].*?<\\/a>(.*?)<\\/p>(?=(\\s*<p><a.*?#_ftnref\\d)|\\s*$|\\s*<\\/div>)"));
 //        list.add(new SimpleFootnote(
