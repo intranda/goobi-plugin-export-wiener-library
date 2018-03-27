@@ -195,7 +195,7 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
         // now export the Mets file
         String exportFile = exportfolder + File.separator + atsPpnBand + ".xml";
         writeMetsFile(process, exportFile, gdzfile, false);
-        addFileGroup(exportFile, getTEIFiles(teiFolder), getFileGroupName(), getFileGroupFolder(), getFileGroupMimeType());
+//        addFileGroup(exportFile, getTEIFiles(teiFolder), getFileGroupName(), getFileGroupFolder(), getFileGroupMimeType());
         return true;
     }
 
