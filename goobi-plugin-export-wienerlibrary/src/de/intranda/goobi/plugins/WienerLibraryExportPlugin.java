@@ -49,6 +49,7 @@ import de.intranda.goobi.ocr.tei.TEIBuilder;
 import de.intranda.goobi.plugins.vocabulary.Field;
 import de.intranda.goobi.plugins.vocabulary.Record;
 import de.intranda.goobi.plugins.vocabulary.VocabularyManager;
+import de.intranda.goobi.utils.TextReplacement;
 import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.config.ConfigurationHelper;
 import de.sub.goobi.export.download.ExportMets;
@@ -559,6 +560,7 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
             VocabularyManager vm = new VocabularyManager(config);
             vm.loadVocabulary("Wiener Library Glossary");
             String newvalue = value;
+            List<TextReplacement> locations = new ArrayList<>();
             for (Record record : vm.getVocabulary().getRecords()) {
                 List<String> keywords = null;
                 String description = "";
@@ -574,7 +576,7 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
                 // now run through all words of string and extend keywords with description
                 StringBuilder sb = new StringBuilder();
                 String wordRegex = "(?<![a-zA-ZäÄüÜöÖß])({keyword})(?![a-zA-ZäÄüÜöÖß])";
-                List<Point> locations = new ArrayList<>();
+                String note = "<note><term>" + record.getTitle() + "</term>" + StringEscapeUtils.escapeHtml(description) + "</note>";
                 for (String keyword : keywords) {
 //                        String replacement = " <span title=\"" + description + "\">$1</span>";
                     String regex = wordRegex.replace("{keyword}", keyword);
@@ -582,23 +584,17 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
                     Pattern p = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
                     Matcher m = p.matcher(newvalue);
                     while(m.find()) {
-                        locations.add(new Point(m.start(), m.end()));
+//                        locations.add(new Point(m.start(), m.end()));
+                        locations.add(new TextReplacement(m.start(), m.end(), note));
                     }
 //                    String group = m.group();
                 }
-                Collections.sort(locations, new Comparator<Point>() {
-
-                    @Override
-                    public int compare(Point p1, Point p2) {
-                        return Integer.compare(p1.x, p2.x);
-                    }
-                });
-                Collections.reverse(locations);
-                String note = "<note><term>" + record.getTitle() + "</term>" + StringEscapeUtils.escapeHtml(description) + "</note>";
-                for (Point location : locations) {
-                    String span = "<span>" + newvalue.substring(location.x, location.y) + note + "</span>";
-                    newvalue = newvalue.substring(0, location.x) + span + newvalue.substring(location.y);
-                }
+            }
+            Collections.sort(locations);
+            Collections.reverse(locations);
+            for (TextReplacement location : locations) {
+                String span = "<span>" + newvalue.substring(location.getStart(), location.getEnd()) + location.getReplacement() + "</span>";
+                newvalue = newvalue.substring(0, location.getStart()) + span + newvalue.substring(location.getEnd());
             }
             return newvalue;
         } catch (Exception e) {
