@@ -5,13 +5,13 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.Map;
-import java.util.prefs.Preferences;
 
 import org.apache.commons.io.FileUtils;
 import org.goobi.beans.Process;
 import org.goobi.beans.Project;
 import org.goobi.beans.Ruleset;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -35,7 +35,7 @@ public class WienerLibraryExportPluginTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
-    File sampleProcessFolder = new File("test/resources/sample_1/");
+    File sampleProcessFolder = new File("test/resources/sample_2/");
     File rulesetFile = new File("test/resources/ruleset.xml");
     File exportFolder = new File("test/output");
     Process process;
@@ -75,7 +75,7 @@ public class WienerLibraryExportPluginTest {
 
     @Test
     public void testStartExport() throws DocStructHasNoTypeException, PreferencesException, WriteException, MetadataTypeNotAllowedException, ReadException, TypeNotAllowedForParentException, IOException, InterruptedException, ExportFileException, UghHelperException, SwapException, DAOException {
-        plugin.startExport(process);
+        Assert.assertTrue(plugin.startExport(process));
     }
     
 

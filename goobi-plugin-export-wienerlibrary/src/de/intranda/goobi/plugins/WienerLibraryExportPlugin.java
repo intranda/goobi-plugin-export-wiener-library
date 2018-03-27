@@ -529,14 +529,26 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
                 }
                 // now run through all words of string and extend keywords with description
                 StringBuilder sb = new StringBuilder();
-                for (String word : newvalue.split("\\s+")) {
-                    if (keywords.contains(word)) {
-                        sb.append(" <span title=\"" + description + "\">" + word + "</span>");
-                    } else {
-                        sb.append(" " + word.trim());
-                    }
+                String wordRegex = "(?<![a-zA-ZäÄüÜöÖß])({keyword})(?![a-zA-ZäÄüÜöÖß])";
+                for (String keyword : keywords) {
+                        String replacement = " <span title=\"" + description + "\">$1</span>";
+                    String regex = wordRegex.replace("{keyword}", keyword);
+                    newvalue = newvalue.replaceAll(regex, replacement);
+//                    Pattern p = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+//                    Matcher m = p.matcher(newvalue);
+//                    while(m.find()) {
+//                        String group = m.group();
+//                        newvalue = newvalue.replaceAll(group, replacement);
+//                    }
                 }
-                newvalue = sb.toString();
+//                for (String word : newvalue.split("[\\s,;\\.!?\'`´()\"]+")) {
+//                    if (keywords.contains(word)) {
+//                        sb.append(" <span title=\"" + description + "\">" + word + "</span>");
+//                    } else {
+//                        sb.append(" " + word.trim());
+//                    }
+//                }
+//                newvalue = sb.toString();
             }
             return newvalue;
         } catch (Exception e) {
