@@ -32,7 +32,7 @@ public class TEIBuilderTest {
 
 	@Test
 	public void testReadMets() throws PreferencesException, ReadException, JDOMException, IOException {
-	    File meta = new File("test/resources/meta_2.xml");
+	    File meta = new File("test/resources/sample_2/meta.xml");
 	    File ruleset = new File("test/resources/ruleset.xml");
 	    File output = new File("test/output");
 	    if(output.exists()) {

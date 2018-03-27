@@ -1,5 +1,6 @@
 package de.intranda.goobi.plugins;
 
+import java.awt.Point;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileOutputStream;
@@ -12,6 +13,8 @@ import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -185,6 +188,7 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
             writeOcrFiles(process, tempFolder.toString(), atsPpnBand, logical);
             removeOcrMetadata(logical);
         } catch (Exception e) {
+            logger.error(e.toString(), e);
             Helper.setFehlerMeldung("Export canceled, Process: " + process.getTitel(), e);
             return false;
         }
@@ -566,16 +570,30 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
                 // now run through all words of string and extend keywords with description
                 StringBuilder sb = new StringBuilder();
                 String wordRegex = "(?<![a-zA-ZäÄüÜöÖß])({keyword})(?![a-zA-ZäÄüÜöÖß])";
+                List<Point> locations = new ArrayList<>();
                 for (String keyword : keywords) {
-                        String replacement = " <span title=\"" + description + "\">$1</span>";
+//                        String replacement = " <span title=\"" + description + "\">$1</span>";
                     String regex = wordRegex.replace("{keyword}", keyword);
-                    newvalue = newvalue.replaceAll(regex, replacement);
-//                    Pattern p = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
-//                    Matcher m = p.matcher(newvalue);
-//                    while(m.find()) {
-//                        String group = m.group();
-//                        newvalue = newvalue.replaceAll(group, replacement);
-//                    }
+//                    newvalue = newvalue.replaceAll(regex, replacement);
+                    Pattern p = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+                    Matcher m = p.matcher(newvalue);
+                    while(m.find()) {
+                        locations.add(new Point(m.start(), m.end()));
+                    }
+//                    String group = m.group();
+                }
+                Collections.sort(locations, new Comparator<Point>() {
+
+                    @Override
+                    public int compare(Point p1, Point p2) {
+                        return Integer.compare(p1.x, p2.x);
+                    }
+                });
+                Collections.reverse(locations);
+                String note = "<note><term>" + record.getTitle() + "</term>" + description + "</note>";
+                for (Point location : locations) {
+                    String span = "<span>" + newvalue.substring(location.x, location.y) + note + "</span>";
+                    newvalue = newvalue.substring(0, location.x) + span + newvalue.substring(location.y);
                 }
 //                for (String word : newvalue.split("[\\s,;\\.!?\'`´()\"]+")) {
 //                    if (keywords.contains(word)) {
