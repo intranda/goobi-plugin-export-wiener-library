@@ -29,6 +29,7 @@ import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
 import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.goobi.beans.Process;
 import org.goobi.beans.ProjectFileGroup;
 import org.goobi.beans.User;
@@ -155,8 +156,12 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
             logical = logical.getAllChildren().get(0);
         }
         // run through all docstructs
-        if (logical.getAllChildren() != null && !logical.getAllChildren().isEmpty()) {
-            for (DocStruct ds : logical.getAllChildren()) {
+        List<DocStruct> dsList = new ArrayList<>();
+        dsList.add(logical);
+        if(logical.getAllChildren() != null) {
+            dsList.addAll(logical.getAllChildren());
+        }
+            for (DocStruct ds : dsList) {
                 log.debug("docstruct is " + ds.getType().getName());
                 if (ds.getAllMetadata() != null) {
                     for (Metadata md : ds.getAllMetadata()) {
@@ -173,7 +178,6 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
                     }
                 }
 
-            }
         }
 
         // start export of images and fulltext
@@ -590,7 +594,7 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
                     }
                 });
                 Collections.reverse(locations);
-                String note = "<note><term>" + record.getTitle() + "</term>" + description + "</note>";
+                String note = "<note><term>" + record.getTitle() + "</term>" + StringEscapeUtils.escapeHtml(description) + "</note>";
                 for (Point location : locations) {
                     String span = "<span>" + newvalue.substring(location.x, location.y) + note + "</span>";
                     newvalue = newvalue.substring(0, location.x) + span + newvalue.substring(location.y);
