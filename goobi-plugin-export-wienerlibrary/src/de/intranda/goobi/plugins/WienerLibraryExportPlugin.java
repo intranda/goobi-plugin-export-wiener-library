@@ -1,6 +1,7 @@
 package de.intranda.goobi.plugins;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
@@ -173,21 +174,21 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
         }
 
         // start export of images and fulltext
-        String teiFolder = exportfolder + File.separator + atsPpnBand + "_tei";
+        Path tempFolder = Files.createTempDirectory(atsPpnBand + "__");
         try {
             if (this.exportWithImages) {
-                imageDownload(process, exportfolder, atsPpnBand, imageDirectorySuffix);
-                fulltextDownload(process, exportfolder, atsPpnBand);
+                imageDownload(process, tempFolder.toFile(), atsPpnBand, imageDirectorySuffix);
+                fulltextDownload(process, tempFolder.toFile(), atsPpnBand);
             } else if (this.exportFulltext) {
-                fulltextDownload(process, exportfolder, atsPpnBand);
+                fulltextDownload(process, tempFolder.toFile(), atsPpnBand);
             }
-            writeOcrFiles(process, teiFolder, atsPpnBand, logical);
+            writeOcrFiles(process, tempFolder.toString(), atsPpnBand, logical);
             removeOcrMetadata(logical);
         } catch (Exception e) {
-
             Helper.setFehlerMeldung("Export canceled, Process: " + process.getTitel(), e);
             return false;
         }
+        moveContent(tempFolder.toFile(), exportfolder);
 
         // now export the Mets file
         File exportFile = new File(exportfolder + File.separator + atsPpnBand + ".xml");
@@ -199,10 +200,28 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
             Helper.setFehlerMeldung("Export canceled, Process: " + process.getTitel(), "Failed to write temporary export mets file");
             return false;
         }
-        addFileGroup(tempFile.getAbsolutePath(), getTEIFiles(teiFolder), getFileGroupName(), getFileGroupFolder(), getFileGroupMimeType());
+        addFileGroup(tempFile.getAbsolutePath(), getTEIFiles(exportfolder + File.separator + atsPpnBand + "_tei"), getFileGroupName(), getFileGroupFolder(), getFileGroupMimeType());
         logger.debug("Moving temporary file " + tempFile + " to export file location " + exportFile);
         FileUtils.moveFile(tempFile, exportFile);
         return true;
+    }
+
+    /**
+     * @param exportfolder
+     * @param tempFolder
+     * @throws IOException
+     */
+    public void moveContent(File source, File target) throws IOException {
+        File[] tempDirs = source.listFiles(new FileFilter() {
+            
+            @Override
+            public boolean accept(File pathname) {
+                return pathname.isDirectory();
+            }
+        });
+        for (File file : tempDirs) {
+            FileUtils.moveDirectory(file, new File(target, file.getName()));
+        }
     }
 
     private File[] getTEIFiles(String teiFolder) {
@@ -311,7 +330,7 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
     }
 
     private void writeOcrFiles(Process process, String exportFolderPath, String title, DocStruct logical) throws WriteException, IOException {
-        Path exportFolder = Paths.get(exportFolderPath);
+        Path exportFolder = Paths.get(exportFolderPath, title + "_tei");
         if(!Files.exists(exportFolder)) {            
             Files.createDirectory(exportFolder);
         }
