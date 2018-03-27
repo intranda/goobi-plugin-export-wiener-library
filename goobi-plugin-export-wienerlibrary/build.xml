@@ -18,8 +18,9 @@
 
 
 	<path id="classpath">
-	    <fileset dir="/opt/digiverso/goobilibs/lib"/>
+		<fileset dir="/opt/digiverso/goobilibs/lib"/>
 		<fileset dir="/opt/digiverso/libs" />
+		<fileset dir="lib" />
 	</path>
 
 	<path id="classpath-test">
