@@ -9,17 +9,28 @@
 	     ================================= -->
 	<property name="filename" value="plugin_intranda_export_wienerlibrary" />
 	<property name="dir.build" value="bin" />
-    <property name="dir.src" value="src" />
-    <property name="dir.test" value="test/src" />
+	<property name="dir.src" value="src" />
+	<property name="dir.test" value="test/src" />
 	<property name="dir.deploy" value="deploy" />
+	<property name="dir.javadoc" value="doc" />
 	<property name="pluginFolderWin" value="C:/Goobi/plugins/export/" />
 	<property name="pluginFolderUnix" value="/opt/digiverso/goobi/plugins/export/" />
-    
-    <path id="classpath">
+
+
+	<path id="classpath">
 	    <fileset dir="/opt/digiverso/goobilibs/lib"/>
-	    <fileset dir="/opt/digiverso/libs" />
+		<fileset dir="/opt/digiverso/libs" />
 	</path>
 
+	<path id="classpath-test">
+	    <fileset dir="/opt/digiverso/goobilibs/lib"/>
+		<fileset dir="/opt/digiverso/libs" />
+		<pathelement location="${dir.build}" />
+		<pathelement location="/opt/digiverso/junit/junit.jar" />
+		<pathelement location="/opt/digiverso/junit/hamcrest-all-1.3.jar" />
+	</path>
+
+	
 	<tstamp>
 		<format property="tstamped-file-name" pattern="yyyy-MM-dd" locale="en,UK" />
 	</tstamp>
@@ -33,6 +44,7 @@
 		<echo>Cleaning up workspace...</echo>
 		<!--<delete dir="${dir.build}" />-->
 		<delete dir="${dir.deploy}" />
+
 	</target>
 
 	<!-- Create needed directories -->
@@ -40,6 +52,8 @@
 		<echo>Creating needed directories...</echo>
 		<mkdir dir="${dir.build}" />
 		<mkdir dir="${dir.deploy}" />
+		<mkdir dir="testreports" />
+
 	</target>
 
 	<!-- Store git revision in internal variable -->
@@ -69,30 +83,25 @@
 	</target>
 	<target name="linux" if="isUnix">
 		<echo>Using Linux path: ${pluginFolderUnix}</echo>
-        <copy tofile="${pluginFolderUnix}/${filename}.jar" file="${dir.deploy}/${filename}-${git.revision}.jar" overwrite="true" />
-		<copy tofile="${pluginFolderUnix}/${filename}-lib.jar" file="${dir.deploy}/${filename}-${git.revision}-lib.jar" overwrite="true" />
-		<!--copy tofile="${pluginFolderUnix}/${filename}-GUI.jar" file="${dir.deploy}/${filename}-GUI.jar" overwrite="true" /-->
-
+		<copy tofile="${pluginFolderUnix}/${filename}-${git.revision}.jar" file="${dir.deploy}/${filename}-${git.revision}.jar" overwrite="true" />
 	</target>
 	<target name="win32" if="isWindows">
 		<echo>Using Windows path: ${pluginFolderWin}</echo>
-        <copy tofile="${pluginFolderWin}$${filename}-${git.revision}.jar" file="${dir.deploy}/${filename}-${git.revision}.jar" overwrite="true" />
-        <!--copy tofile="${pluginFolderWin}/${filename}-GUI.jar" file="${dir.deploy}/${filename}-GUI.jar" overwrite="true" /-->
-
+		<copy tofile="${pluginFolderWin}$${filename}-${git.revision}.jar" file="${dir.deploy}/${filename}-${git.revision}.jar" overwrite="true" />
 	</target>
 
 	<!-- ================================= 
          Compile the sources
 	     ================================= -->
 
-    <target name="compile">
-        <echo>Using eclipse compiler</echo>
-        <javac destdir="${dir.build}" includeantruntime="false" source="1.7" target="1.7">
-            <classpath refid="classpath" />
-            <compilerarg value="-Xlint" />
-            <src path="src" />
-        </javac>
-    </target>
+	<target name="compile">
+		<echo>Using jenkins compiler</echo>
+		<javac destdir="${dir.build}" includeantruntime="false" target="8" encoding="UTF8" source="8" debug="true" debuglevel="lines,vars,source" >
+			<classpath refid="classpath" />
+			<compilerarg value="-Xlint" />
+			<src path="src" />
+		</javac>
+	</target>
 
 	<!-- ================================= 
          Include the libraries
@@ -109,7 +118,7 @@
 				</chainedmapper>
 			</mapper>
 			<path>
-				<fileset dir="bin/de/intranda/goobi/plugins">
+				<fileset dir="${dir.build}/de/intranda/goobi/plugins">
 					<include name="*.class" />
 				</fileset>
 			</path>
@@ -120,38 +129,15 @@
          Compile the jar
 	     ================================= -->
 
-    <target name="jar" depends="libs">
-        <jar destfile="${dir.deploy}/${filename}-${git.revision}.jar">
-            <manifest>
-                <attribute name="Main-Class" value="de.intranda.goobi.PluginInfo" />
-                <attribute name="Class-Path" value="${libs.project}" />
-            </manifest>
-            <fileset dir="bin">
-                    <include name="**/*Plugin.class" />
-            </fileset>
-        </jar>
-    	
-	    	<jar destfile="${dir.deploy}/${filename}-${git.revision}-lib.jar">
-	        <manifest>
-	            <attribute name="Main-Class" value="de.intranda.goobi.PluginInfo" />
-	            <attribute name="Class-Path" value="${libs.project}" />
-	        </manifest>
-	        <fileset dir="bin">
-	                <exclude name="**/*Plugin.class" />
-	        </fileset>
-	    </jar>
-    </target>
-
-    <!--target name="jar-gui">
-        <jar destfile="${dir.deploy}/${filename}-GUI.jar">
-            <manifest>
-                <attribute name="Class-Path" value="${libs.project}" />
-            </manifest>
-            <fileset dir="GUI" />
-            
-
-        </jar>
-    </target-->
+	<target name="jar">
+		<jar destfile="${dir.deploy}/${filename}-${git.revision}.jar">
+			<manifest>
+				<attribute name="Main-Class" value="de.intranda.goobi.PluginInfo" />
+				<attribute name="Class-Path" value="${libs.project}" />
+			</manifest>
+			<fileset dir="${dir.build}" />
+		</jar>
+	</target>
 
 	<!-- ================================= 
 	              RUNNABLE JAR
@@ -159,8 +145,10 @@
 
 	<target name="jar.runnable" depends="git.revision">
 		<echo>Compile sources ...</echo>
-        <antcall target="compile" />
+		<antcall target="compile" />
 
+		<copy file="${dir.src}/de/intranda/goobi/plugins.txt" todir="${dir.build}/de/intranda/goobi" />
+		
 		<echo>Generate Plugin list</echo>
 		<pathconvert property="plugins.project" pathsep=" ">
 			<mapper>
@@ -171,7 +159,7 @@
 			</mapper>
 			<path>
 				<!-- lib.home contains all jar files in several subdirectories -->
-				<fileset dir="bin/de/intranda/goobi/plugins">
+				<fileset dir="${dir.build}/de/intranda/goobi/plugins">
 					<include name="*.class" />
 				</fileset>
 			</path>
@@ -181,8 +169,7 @@
 		<echo file="${dir.build}/de/intranda/goobi/plugins.txt">${plugins.project}  -----------------------------------------------------  Git-revision: ${git.revision}</echo>
 
 		<echo>Generating jar file: ${dir.deploy}/${filename}-${git.revision}.jar</echo>
-        <antcall target="jar" />
-        <!--antcall target="jar-gui" /-->
+		<antcall target="jar" />
 	</target>
 
 	<!-- ================================= 
@@ -190,10 +177,42 @@
 	     ================================= -->
 
 	<!-- Run all targets in appropiate order for clean compile-->
-	<target name="dist" depends="clean, createDirs, git.revision, jar.runnable" description="Creating everything for Jenkins.">
-	  <copy tofile="${dir.deploy}/plugin_intranda_export_wienerlibrary.xml" file="plugin_intranda_export_wienerlibrary.xml" />
+	<target name="dist" depends="javadoc, junit, jar.runnable" description="Creating everything for Jenkins.">
+		<copy tofile="${dir.deploy}/plugin_intranda_export_wienerlibrary.xml" file="plugin_intranda_export_wienerlibrary.xml" />
 	</target>
 
+	<target name="javadoc">
+		<delete dir="${dir.javadoc}" />
+		<mkdir dir="${dir.javadoc}" />
+		<!-- create javadocs -->
+		<javadoc destdir="${dir.javadoc}" sourcepath="${dir.src}" Author="true" version="true" Use="true" noindex="true" Windowtitle="intranda
+	Licenceserver JavaDoc References" Doctitle="intranda Plugin JavaDoc References" bottom="Copyright 2014, inranda GmbH" encoding="UTF8">
+			<classpath refid="classpath">
+			</classpath>
+		</javadoc>
+	</target>
+
+	<target name="junit" depends="clean, createDirs, compile">
+
+		<copy file="${dir.src}/de/intranda/goobi/plugins.txt" todir="${dir.build}/de/intranda/goobi" />
+		
+		<javac destdir="${dir.build}" includeantruntime="false" debug="true">
+			<classpath refid="classpath-test" />
+			<compilerarg value="-Xlint" />
+			<src path="${dir.test}" />
+			<src path="${dir.src}" />
+		</javac>
+
+
+
+		<junit haltonerror="true" haltonfailure="true">
+			<classpath refid="classpath-test" />
+			<formatter type="xml" usefile="true" />
+			<test name="de.intranda.goobi.AllTests" todir="testreports" />
+		</junit>
+
+
+	</target>
 
 	<!-- ================================= 
                   DEPLOY
@@ -211,5 +230,5 @@
 		<echo>intranda... alles ist gut!</echo>
 	</target>
 
-</project>
 
+</project>
