@@ -127,10 +127,7 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
         String atsPpnBand = process.getTitel();
 
         Fileformat gdzfile;
-        
-        String exportff = process.getProjekt().getFileFormatDmsExport();
 
-        
         ExportFileformat newfile = MetadatenHelper.getExportFileformatByName(process.getProjekt().getFileFormatDmsExport(), process.getRegelsatz());
 
         try {
@@ -286,19 +283,23 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
     private void removeOcrMetadata(DocStruct logical) {
         Pattern fulltextMetadataPattern = Pattern.compile(FULLTEXT_METADATA_REGEX);
 
-        if (logical.getAllChildren() != null && !logical.getAllChildren().isEmpty()) {
-            for (DocStruct ds : logical.getAllChildren()) {
+        List<DocStruct> dsList = new ArrayList<>();
+        dsList.add(logical);
+        if(logical.getAllChildren() != null) {                
+            dsList.addAll(logical.getAllChildren());
+        }
+        for (DocStruct ds : dsList) {
                 log.debug("docstruct is " + ds.getType().getName());
                 log.debug("docstruct id is " + ds.getIdentifier());
                 if (ds.getAllMetadata() != null) {
-                    for (Metadata md : ds.getAllMetadata()) {
+                    List<Metadata> mdList = new ArrayList<>(ds.getAllMetadata());
+                    for (Metadata md : mdList) {
                         Matcher matcher = fulltextMetadataPattern.matcher(md.getType().getName());
                         if (matcher.matches()) {
                             ds.removeMetadata(md, true);
                         }
                     }
                 }
-            }
         }
 
     }
@@ -310,9 +311,13 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
         }
         Pattern fulltextMetadataPattern = Pattern.compile(FULLTEXT_METADATA_REGEX);
 
-        if (logical.getAllChildren() != null && !logical.getAllChildren().isEmpty()) {
             Map<String, List<String>> texts = new HashMap<>();
-            for (DocStruct ds : logical.getAllChildren()) {
+            List<DocStruct> dsList = new ArrayList<>();
+            dsList.add(logical);
+            if(logical.getAllChildren() != null) {                
+                dsList.addAll(logical.getAllChildren());
+            }
+            for (DocStruct ds : dsList) {
                 log.debug("docstruct is " + ds.getType().getName());
                 log.debug("docstruct id is " + ds.getIdentifier());
                 if (ds.getAllMetadata() != null) {
@@ -345,7 +350,6 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
                 }
 
             }
-        }
 
     }
 
