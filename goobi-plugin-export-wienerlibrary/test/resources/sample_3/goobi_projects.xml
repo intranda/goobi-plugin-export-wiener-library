@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<goobiProjects>
+        <project name="default">
+                <createNewProcess>
+                        <itemlist>
+
+                             <!-- ZVDD -->
+                           <!--     <item docstruct="topstruct" isnotdoctype="periodical|multivolume|Series" metadata="_dateDigitization" multiselect="true" required="true" ughbinding="true">
+                                        Datum der Digitalisierung
+                                        <select label="2017"> 2017</select>
+                                </item>
+                                <item docstruct="firstchild" isdoctype="periodical|multivolume|Series" metadata="_dateDigitization" multiselect="true" required="true" ughbinding="true">
+                                        Datum der Digitalisierung
+                                        <select label="2017"> 2017</select>
+                                </item>
+                                <item docstruct="topstruct" isnotdoctype="periodical|multivolume|Series" metadata="_electronicEdition" multiselect="true" required="true"
+                                        ughbinding="true">
+                                        Electronic ed.
+                                        <select label="[Electronic ed.]"> [Electronic ed.] </select>
+                                </item> 
+                                <item docstruct="firstchild" isdoctype="periodical|multivolume|Series" metadata="_electronicEdition" multiselect="true" required="true" ughbinding="true">
+                                        Electronic ed.
+                                        <select label="[Electronic ed.]"> [Electronic ed.]</select>
+                                </item>
+                                <item docstruct="topstruct" isnotdoctype="periodical|multivolume|Series" metadata="_electronicPublisher" multiselect="true" required="true"
+                                        ughbinding="true">
+                                        Hersteller der digit. Ausgabe
+                                        <select label="WU Wien"> Wirtschaftsuniversität Wien </select>
+                                </item>
+                                <item docstruct="firstchild" isdoctype="periodical|multivolume|Series" metadata="_electronicPublisher" multiselect="true" required="true"
+                                        ughbinding="true">
+                                        Hersteller der digit. Ausgabe
+                                        <select label="WU Wien"> Wirtschaftsuniversität Wien </select>
+                                </item>
+                                <item docstruct="topstruct" isnotdoctype="periodical|multivolume|Series" metadata="_placeOfElectronicOrigin" multiselect="true" required="true"
+                                        ughbinding="true">
+                                        Herkunft der digit. Ausgabe
+                                        <select label="Wien">Wien</select>
+                                </item>                         
+
+                                <item docstruct="firstchild" isdoctype="periodical|multivolume|Series" metadata="_placeOfElectronicOrigin" multiselect="true" required="true"
+                                        ughbinding="true">
+                                        Herkunft der digit. Ausgabe
+                                        <select label="Wien">Wien</select>
+                                </item> -->
+                                <item docstruct="topstruct" isnotdoctype="periodical|multivolume|Series" metadata="_digitalOrigin" multiselect="true" required="true" ughbinding="true">
+                                        Digitale Herkunft
+                                        <select label="reformatted digital"> reformatted digital </select>
+                                </item>
+                                <item docstruct="firstchild" isdoctype="periodical|multivolume|Series" metadata="_digitalOrigin" multiselect="true" required="true" ughbinding="true">
+                                        Digitale Herkunft
+                                        <select label="reformatted digital"> reformatted digital </select>
+                                </item>
+                                <item docstruct="boundbook" from="vorlage" metadata="PhysicalLocation" multiselect="true"
+                                        required="true" ughbinding="true">
+                                        Physikalischer Standort
+                                        <select label="WU Wien"> Wirtschaftsuniversität Wien </select>
+                                </item>
+
+				<item from="werk" multiselect="true">
+					Artist
+					<select label="WU Wien"> Wirtschaftsuniversität Wien </select>
+				</item>
+
+
+				<item from="prozess" multiselect="false">
+					Schrifttyp
+					<select label="antiqua">Antiqua</select>
+					<select label="fraktur">Fraktur</select>
+					<select label="kein OCR">no_ocr</select>
+				</item>
+				<!-- title for monograph and periodical -->
+				<item from="vorlage" isnotdoctype="multivolume|Series" required="true" ughbinding="true" docstruct="topstruct" metadata="TitleDocMain"> Titel </item>
+				<item from="vorlage" isnotdoctype="multivolume|Series" required="true" ughbinding="true" docstruct="topstruct" metadata="TitleDocMainShort"> Titel (Sortierung)
+				</item>
+				<!-- title just for the multivolume|Series -->
+				<item from="vorlage" isdoctype="multivolume|Series" required="true" ughbinding="true" docstruct="topstruct" metadata="TitleDocMain"> Titel </item>
+				<item from="vorlage" isdoctype="multivolume|Series" required="true" ughbinding="true" docstruct="topstruct" metadata="TitleDocMainShort"> Titel (Sortierung)
+				</item>
+				<!-- authors and creators -->
+				<item from="vorlage" isdoctype="monograph|multivolume|Series|periodical|SingleLetter" ughbinding="true" docstruct="topstruct" metadata="ListOfCreators"> Autoren </item>
+				<!-- addressees for letters -->
+				<item from="vorlage" isdoctype="SingleLetter" ughbinding="true" docstruct="topstruct" metadata="Addressee"> Empfänger </item>
+				<item from="vorlage" isdoctype="SingleLetter" ughbinding="true" docstruct="topstruct" metadata="CorporateAddressee"> Empfänger (Körperschaft) </item>
+				<item from="vorlage" isdoctype="SingleLetter" ughbinding="true" docstruct="topstruct" metadata="CorporateAddressee"> Empfänger (Körperschaft) 2</item>
+				
+				<!-- identifer -->
+				<item from="werk" isnotdoctype="periodical" ughbinding="true" metadata="TSL_ATS" docstruct="topstruct">ATS</item>
+				<item from="werk" isdoctype="periodical" ughbinding="true" metadata="TSL_ATS" docstruct="topstruct">TSL</item>
+
+				<item from="werk" isdoctype="multivolume|Series" required="true" ughbinding="true" docstruct="topstruct" metadata="CatalogIDDigital"> Identifier c-Satz</item>
+
+				<item from="werk" isdoctype="monograph" required="true" ughbinding="true" docstruct="topstruct" metadata="CatalogIDDigital"> Identifier a-Satz</item>
+				<item from="werk" required="true" isdoctype="SingleLetter" ughbinding="true" docstruct="topstruct" metadata="CatalogIDDigital" autogenerated="true"> Identifier Brief </item>
+
+				<item from="werk" isdoctype="periodical" required="true" ughbinding="true" docstruct="topstruct" metadata="CatalogIDDigital"> Identifier b-Satz</item>
+				<item from="werk" isdoctype="periodical" required="true" ughbinding="true" docstruct="topstruct" metadata="ISSN"> ISSN </item>
+				<item from="werk" isdoctype="Series" required="false" ughbinding="true" docstruct="topstruct" metadata="ISSN"> ISSN </item>
+				<item from="werk" isdoctype="Series" required="false" ughbinding="true" docstruct="topstruct" metadata="ISBN"> ISBN </item>
+
+				<item from="werk" required="true" isdoctype="periodical" ughbinding="true" docstruct="firstchild" metadata="CatalogIDDigital"> Identifier Band </item>
+				<!--title\, number and authors for multivolume|Seriess and periodicals -->
+				<item from="vorlage" isdoctype="multivolume|Series|periodical" required="true" ughbinding="true" docstruct="firstchild" metadata="TitleDocMain"> Titel
+					(Band)</item>
+				<item from="vorlage" isdoctype="multivolume|Series|periodical" required="true" ughbinding="true" docstruct="firstchild" metadata="TitleDocMainShort"> Titel
+					(Band) (Sortierung)</item>
+				<item from="vorlage" isdoctype="multivolume|Series" ughbinding="true" docstruct="firstchild" metadata="ListOfCreators"> Autoren (Band)</item>
+				<item from="vorlage" isnotdoctype="monograph" ughbinding="true" docstruct="firstchild" metadata="CurrentNo"> Bandnummer </item>
+				<item from="vorlage" isnotdoctype="monograph" ughbinding="true" docstruct="firstchild" metadata="CurrentNoSorting"> Nummer (Sortierung) </item>
+				<item from="vorlage" isdoctype="multivolume|Series|periodical" required="true"> Nummer (Benennung) </item>
+
+				<item from="werk" required="true" isdoctype="multivolume|Series" ughbinding="true" docstruct="firstchild" metadata="CatalogIDDigital"> Identifier f-Satz </item>
+				
+				<!-- other metadata for all -->
+				<item from="vorlage" isdoctype="monograph|multivolume|Series|periodical" ughbinding="true" docstruct="topstruct" metadata="PlaceOfPublication"> Erscheinungsort</item>
+				<item from="vorlage" isdoctype="SingleLetter" ughbinding="true" docstruct="topstruct" metadata="PointOfOrigin"> Entstehungsort
+				</item>
+				<item from="vorlage" isdoctype="monograph" ughbinding="true" docstruct="topstruct" metadata="PublicationYear"> Erscheinungsjahr </item>
+				<item from="vorlage" isdoctype="SingleLetter" ughbinding="true" docstruct="topstruct" metadata="Date"> Entstehungsjahr </item>
+				<item from="vorlage" isdoctype="periodical|multivolume|Series" ughbinding="true" docstruct="firstchild" metadata="PublicationYear"> Erscheinungsjahr </item>
+				<item from="vorlage" isdoctype="multivolume|Series|periodical" ughbinding="true" docstruct="firstchild" metadata="PublisherName"> Verlag </item>
+				<item from="vorlage" isdoctype="monograph" ughbinding="true" docstruct="topstruct" metadata="PublisherName"> Verlag </item>
+				<item from="vorlage" ughbinding="true" docstruct="boundbook" metadata="shelfmarksource"> Signatur </item>
+				<processtitle isdoctype="multivolume">ATS+TSL+'_'+Identifier f-Satz+'_'+Nummer (Benennung)</processtitle>
+				<processtitle isdoctype="Series">ATS+TSL+'_'+Identifier f-Satz+'_'+Nummer (Benennung)</processtitle>
+				<processtitle isdoctype="monograph">ATS+TSL+'_'+Identifier a-Satz</processtitle>
+				<processtitle isdoctype="periodical">TSL+'_'+Identifier b-Satz+'_'+Nummer (Benennung)</processtitle>
+				<processtitle isdoctype="SingleLetter">ATS+'_'+Identifier Brief</processtitle>
+				<!-- <processtitle isnotdoctype="multivolume">ATS+TSL+'_'+Identifier c/a-Aufnahmel+'_'+Bandnummer</processtitle> -->
+				<hide />
+			</itemlist>
+			<opac use="true">
+				<catalogue>OOE</catalogue>
+			</opac>
+			<templates use="true" />
+			<defaultdoctype>monograph</defaultdoctype>
+			<metadatageneration use="true" />
+		</createNewProcess>
+		<tifheader>
+			<monograph>'|[[DOC_TYPE]]'+$Doctype+'|[[HAUPTTITEL]]'+Titel+'|[[AUTOREN/HERAUSGEBER]]'+Autoren+'|[[JAHR]]'+Erscheinungsjahr+'|[[ERSCHEINUNGSORT]]'+Erscheinungsort+'|[[VERZ_STRCT]]'+ATS+'_'+Identifier
+				a-Satz+'|'</monograph>
+			<multivolume>'|[[DOC_TYPE]]'+$Doctype+'|[[HAUPTTITEL]]'+Titel+'|[[AUTOREN/HERAUSGEBER]]'+Autoren+'|[[JAHR]]'+Erscheinungsjahr+'|[[ERSCHEINUNGSORT]]'+Erscheinungsort+'|[[VERZ_STRCT]]'+ATS+'_'+Identifier
+				f-Satz+'_'+Nummer (Benennung)+'|'</multivolume>
+			<Series>'|[[DOC_TYPE]]'+$Doctype+'|[[HAUPTTITEL]]'+Titel+'|[[AUTOREN/HERAUSGEBER]]'+Autoren+'|[[JAHR]]'+Erscheinungsjahr+'|[[ERSCHEINUNGSORT]]'+Erscheinungsort+'|[[VERZ_STRCT]]'+ATS+'_'+Identifier
+				f-Satz+'_'+Nummer (Benennung)+'|'</Series>
+			<periodical>'|[[DOC_TYPE]]'+$Doctype+'|[[HAUPTTITEL]]'+Titel+'|[[AUTOREN/HERAUSGEBER]]'+Autoren+'|[[JAHR]]'+Erscheinungsjahr+'|[[ERSCHEINUNGSORT]]'+Erscheinungsort+'|[[VERZ_STRCT]]'+TSL+'_'+Identifier
+				b-Satz+'_'+Nummer (Benennung)+'|'</periodical>
+		   <SingleLetter>'|[[DOC_TYPE]]'+$Doctype+'|[[HAUPTTITEL]]'+Titel+'|[[AUTOREN/HERAUSGEBER]]'+Autoren+'|[[JAHR]]'+Entstehungsjahr+'|[[ERSCHEINUNGSORT]]'+Entstehungsort+'|[[VERZ_STRCT]]'+ATS+'_'+Identifier
+				Brief+'|'</SingleLetter>
+		</tifheader>
+		<dmsImport />
+		<!-- <validate> <metadata startswith="PPN" docstruct="topstruct" metadata="CatalogIDDigital">PPN muss mit PPN beginnen</metadata> <metadata startswith="PPN" 
+			docstruct="topstruct" metadata="CatalogIDSource">PPN muss mit PPN beginnen</metadata> <metadata startswith="PPN" docstruct="firstchild" metadata="CatalogIDDigital">PPN 
+			muss mit PPN beginnen</metadata> <metadata startswith="PPN" docstruct="firstchild" metadata="CatalogIDSource">PPN muss mit PPN beginnen</metadata> <metadata 
+			metadata="CreatorsAllOrigin" docstruct="all" createelementfrom="Author|Editor|IllustratorArtist|Photographer|Translator|Creator">CreatorsAllOrigin automatisch 
+			anlegen</metadata> </validate> -->
+	</project>
+</goobiProjects>

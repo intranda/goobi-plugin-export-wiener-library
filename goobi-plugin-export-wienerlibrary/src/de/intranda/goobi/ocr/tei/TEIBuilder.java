@@ -16,6 +16,7 @@ import org.jdom2.JDOMException;
 import org.jdom2.Namespace;
 import org.jdom2.input.SAXBuilder;
 
+import de.intranda.goobi.ocr.tei.HtmlToTEIConvert.ConverterMode;
 import lombok.extern.log4j.Log4j;
 
 @Log4j
@@ -61,10 +62,12 @@ public class TEIBuilder {
         Element body = new Element("body", TEI);
         List<Content> content;
         if(texts.size() == 1) {
-        	content = new SAXBuilder().build(new StringReader("<div>" + unescape(texts.get(0)) + "</div>")).getRootElement().removeContent();
+            String text = new HtmlToTEIConvert(ConverterMode.resource).convert(texts.get(0));
+        	content = new SAXBuilder().build(new StringReader("<div>" + unescape(text) + "</div>")).getRootElement().removeContent();
         } else {
         	content = new ArrayList<>();
         	for (String text : texts) {
+        	    text = new HtmlToTEIConvert(ConverterMode.resource).convert(text);
 				Element section = new Element(SECTION_ELEMENT_NAME, TEI);
 	        	section.addContent(new SAXBuilder().build(new StringReader("<div>" + unescape(text) + "</div>")).getRootElement().removeContent());
 	        	content.add(section);
