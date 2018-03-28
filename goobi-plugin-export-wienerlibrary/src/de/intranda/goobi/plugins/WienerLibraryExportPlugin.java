@@ -166,12 +166,13 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
                 log.debug("docstruct is " + ds.getType().getName());
                 if (ds.getAllMetadata() != null) {
                     for (Metadata md : ds.getAllMetadata()) {
-                        if (md.getType().getName().equals("Transcription_de") || md.getType().getName().equals("Transcription_en")
-                                || md.getType().getName().equals("Transcription_fr") || md.getType().getName().equals("Transcription_nl")
-                                || md.getType().getName().equals("Transcription_al") || md.getType().getName().equals("Transcription_it")
-                                || md.getType().getName().equals("Translation_de") || md.getType().getName().equals("Translation_en")
-                                || md.getType().getName().equals("Translation_fr") || md.getType().getName().equals("Translation_nl")
-                                || md.getType().getName().equals("Translation_al") || md.getType().getName().equals("Translation_it")) {
+                        if(md.getType().getName().equals("Transcription_en") || md.getType().getName().equals("Translation_en")) {
+//                        if (md.getType().getName().equals("Transcription_de") || md.getType().getName().equals("Transcription_en")
+//                                || md.getType().getName().equals("Transcription_fr") || md.getType().getName().equals("Transcription_nl")
+//                                || md.getType().getName().equals("Transcription_al") || md.getType().getName().equals("Transcription_it")
+//                                || md.getType().getName().equals("Translation_de") || md.getType().getName().equals("Translation_en")
+//                                || md.getType().getName().equals("Translation_fr") || md.getType().getName().equals("Translation_nl")
+//                                || md.getType().getName().equals("Translation_al") || md.getType().getName().equals("Translation_it")) {
                             String value = md.getValue();
                             String newValue = enrichMetadataWithVocabulary(value);
                             md.setValue(newValue);
