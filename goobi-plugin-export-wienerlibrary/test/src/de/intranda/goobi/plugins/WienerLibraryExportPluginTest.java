@@ -35,7 +35,7 @@ public class WienerLibraryExportPluginTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
-    File sampleProcessFolder = new File("test/resources/sample_2/");
+    File sampleProcessFolder = new File("test/resources/sample_4/");
     File rulesetFile = new File("test/resources/ruleset.xml");
     File exportFolder = new File("test/output");
     Process process;

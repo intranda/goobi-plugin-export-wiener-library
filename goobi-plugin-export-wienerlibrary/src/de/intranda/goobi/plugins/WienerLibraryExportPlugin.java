@@ -1,6 +1,5 @@
 package de.intranda.goobi.plugins;
 
-import java.awt.Point;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileOutputStream;
@@ -14,19 +13,14 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import javax.swing.plaf.metal.MetalSliderUI;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
 import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -34,7 +28,6 @@ import org.goobi.beans.Process;
 import org.goobi.beans.ProjectFileGroup;
 import org.goobi.beans.User;
 import org.goobi.production.enums.PluginType;
-import org.goobi.production.export.ExportXmlLog;
 import org.goobi.production.plugin.interfaces.IExportPlugin;
 import org.goobi.production.plugin.interfaces.IPlugin;
 import org.jdom2.Document;
@@ -56,6 +49,7 @@ import de.sub.goobi.export.download.ExportMets;
 import de.sub.goobi.helper.FilesystemHelper;
 import de.sub.goobi.helper.Helper;
 import de.sub.goobi.helper.NIOFileUtils;
+import de.sub.goobi.helper.StorageProvider;
 import de.sub.goobi.helper.VariableReplacer;
 import de.sub.goobi.helper.exceptions.DAOException;
 import de.sub.goobi.helper.exceptions.ExportFileException;
@@ -65,20 +59,15 @@ import de.sub.goobi.metadaten.MetadatenHelper;
 import lombok.Data;
 import lombok.extern.log4j.Log4j;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
-import ugh.dl.ContentFile;
-import ugh.dl.DigitalDocument;
 import ugh.dl.DocStruct;
 import ugh.dl.ExportFileformat;
 import ugh.dl.Fileformat;
 import ugh.dl.Metadata;
-import ugh.dl.Prefs;
-import ugh.dl.VirtualFileGroup;
 import ugh.exceptions.DocStructHasNoTypeException;
 import ugh.exceptions.MetadataTypeNotAllowedException;
 import ugh.exceptions.PreferencesException;
 import ugh.exceptions.ReadException;
 import ugh.exceptions.TypeNotAllowedForParentException;
-import ugh.exceptions.UGHException;
 import ugh.exceptions.WriteException;
 
 @Data
@@ -415,12 +404,12 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
 
         // download sources
         Path sources = Paths.get(process.getSourceDirectory());
-        if (Files.exists(sources) && !NIOFileUtils.list(process.getSourceDirectory()).isEmpty()) {
+        if (Files.exists(sources) && !StorageProvider.getInstance().list(process.getSourceDirectory()).isEmpty()) {
             Path destination = Paths.get(exportfolder.toString(), atsPpnBand + "_src");
             if (!Files.exists(destination)) {
                 Files.createDirectories(destination);
             }
-            List<Path> dateien = NIOFileUtils.listFiles(process.getSourceDirectory());
+            List<Path> dateien = StorageProvider.getInstance().listFiles(process.getSourceDirectory());
             for (Path dir : dateien) {
                 Path meinZiel = Paths.get(destination.toString(), dir.getFileName().toString());
                 Files.copy(dir, meinZiel, NIOFileUtils.STANDARD_COPY_OPTIONS);
@@ -430,15 +419,15 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
         Path ocr = Paths.get(process.getOcrDirectory());
         if (Files.exists(ocr)) {
 
-            List<Path> folder = NIOFileUtils.listFiles(process.getOcrDirectory());
+            List<Path> folder = StorageProvider.getInstance().listFiles(process.getOcrDirectory());
             for (Path dir : folder) {
-                if (Files.isDirectory(dir) && !NIOFileUtils.list(dir.toString()).isEmpty()) {
+                if (Files.isDirectory(dir) && !StorageProvider.getInstance().list(dir.toString()).isEmpty()) {
                     String suffix = dir.getFileName().toString().substring(dir.getFileName().toString().lastIndexOf("_"));
                     Path destination = Paths.get(exportfolder.toString(), atsPpnBand + suffix);
                     if (!Files.exists(destination)) {
                         Files.createDirectories(destination);
                     }
-                    List<Path> files = NIOFileUtils.listFiles(dir.toString());
+                    List<Path> files = StorageProvider.getInstance().listFiles(dir.toString());
                     for (Path file : files) {
                         Path target = Paths.get(destination.toString(), file.getFileName().toString());
                         Files.copy(file, target, NIOFileUtils.STANDARD_COPY_OPTIONS);
@@ -484,7 +473,7 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
                 }
 
                 /* jetzt den eigentlichen Kopiervorgang */
-                List<Path> files = NIOFileUtils.listFiles(process.getImagesTifDirectory(true), NIOFileUtils.DATA_FILTER);
+                List<Path> files = StorageProvider.getInstance().listFiles(process.getImagesTifDirectory(true), NIOFileUtils.DATA_FILTER);
                 for (Path file : files) {
                     Path target = Paths.get(zielTif.toString(), file.getFileName().toString());
                     Files.copy(file, target, NIOFileUtils.STANDARD_COPY_OPTIONS);
@@ -498,8 +487,8 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
                         // check if source files exists
                         if (pfg.getFolder() != null && pfg.getFolder().length() > 0) {
                             Path folder = Paths.get(process.getMethodFromName(pfg.getFolder()));
-                            if (folder != null && java.nio.file.Files.exists(folder) && !NIOFileUtils.list(folder.toString()).isEmpty()) {
-                                List<Path> files = NIOFileUtils.listFiles(folder.toString());
+                            if (folder != null && java.nio.file.Files.exists(folder) && !StorageProvider.getInstance().list(folder.toString()).isEmpty()) {
+                                List<Path> files = StorageProvider.getInstance().listFiles(folder.toString());
                                 for (Path file : files) {
                                     Path target = Paths.get(zielTif.toString(), file.getFileName().toString());
 
@@ -512,16 +501,16 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
             }
             Path exportFolder = Paths.get(process.getExportDirectory());
             if (Files.exists(exportFolder) && Files.isDirectory(exportFolder)) {
-                List<Path> subdir = NIOFileUtils.listFiles(process.getExportDirectory());
+                List<Path> subdir = StorageProvider.getInstance().listFiles(process.getExportDirectory());
                 for (Path dir : subdir) {
-                    if (Files.isDirectory(dir) && !NIOFileUtils.list(dir.toString()).isEmpty()) {
+                    if (Files.isDirectory(dir) && !StorageProvider.getInstance().list(dir.toString()).isEmpty()) {
                         if (!dir.getFileName().toString().matches(".+\\.\\d+")) {
                             String suffix = dir.getFileName().toString().substring(dir.getFileName().toString().lastIndexOf("_"));
                             Path destination = Paths.get(exportfolder.toString(), atsPpnBand + suffix);
                             if (!Files.exists(destination)) {
                                 Files.createDirectories(destination);
                             }
-                            List<Path> files = NIOFileUtils.listFiles(dir.toString());
+                            List<Path> files = StorageProvider.getInstance().listFiles(dir.toString());
                             for (Path file : files) {
                                 Path target = Paths.get(destination.toString(), file.getFileName().toString());
                                 Files.copy(file, target, NIOFileUtils.STANDARD_COPY_OPTIONS);

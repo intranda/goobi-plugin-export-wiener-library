@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Preferences>
   <MetadataType>
+    <Name>viewerinstance</Name>
+    <language name="de">viewerinstance</language>
+    <language name="en">viewerinstance</language>
+  </MetadataType>
+  <MetadataType>
     <Name>URN</Name>
     <language name="de">URN</language>
     <language name="en">URN</language>
@@ -1174,6 +1179,16 @@
     <language name="de">Credit Line</language>
     <language name="en">Credit Line</language>
   </MetadataType>
+  <MetadataType normdata="false">
+    <Name>DateRange</Name>
+    <language name="de">Date range</language>
+    <language name="en">Date range</language>
+  </MetadataType>
+  <MetadataType normdata="false">
+    <Name>TypeOfMaterial</Name>
+    <language name="de">Type of material</language>
+    <language name="en">Type of material</language>
+  </MetadataType>
   
   <!-- ########################## Wiener Library ############################# -->
 
@@ -2155,6 +2170,9 @@
     <metadata num="*">CreditLine</metadata>
     <metadata num="*">SubjectPerson</metadata>
     <metadata num="*">SubjectCorporate</metadata>
+    <metadata num="*">viewerinstance</metadata>
+    <metadata num="*">TypeOfMaterial</metadata>
+    <metadata num="*">DateRange</metadata>
     
   </DocStrctType>
 
@@ -5611,7 +5629,7 @@
         <URI>http://intranda.com/</URI>
         <prefix>intranda</prefix>
       </NamespaceDefinition>
-      <XPathAnchorQuery>./mods:mods/mods:relatedItem[@type='host']/mods:recordInfo/mods:recordIdentifier[@source='gbv-ppn']
+      <XPathAnchorQuery>./mods:mods/mods:relatedItem[@type='host']/mods:recordInfo/mods:recordIdentifier[@source='soutron']
             </XPathAnchorQuery>
       <AnchorIdentifierMetadataType>CatalogIDDigital
             </AnchorIdentifierMetadataType>
@@ -5725,7 +5743,7 @@
       </Metadata>
       <Metadata>
         <InternalName>CatalogIDDigital</InternalName>
-        <WriteXPath>./mods:mods/mods:recordInfo/#mods:recordIdentifier[@source='gbv-ppn']
+        <WriteXPath>./mods:mods/mods:recordInfo/#mods:recordIdentifier[@source='soutron']
                 </WriteXPath>
       </Metadata>
       <Metadata>
@@ -5794,7 +5812,7 @@
       </Metadata>
       <Metadata>
         <InternalName>AccessLicense</InternalName>
-        <WriteXPath>./mods:mods/mods:accessCondition[@type='dz']
+        <WriteXPath>./mods:mods/mods:accessCondition[@type='restriction on access']
                 </WriteXPath>
       </Metadata>
       <Metadata>
@@ -6060,16 +6078,17 @@
       
       <Metadata>
         <InternalName>CoverageDates</InternalName>
-        <WriteXPath>./mods:mods/mods:extension/intranda:intranda/intranda:CoverageDates</WriteXPath>
+        <WriteXPath>./mods:mods/mods:originInfo/#mods:dateOther</WriteXPath>
+        <!--WriteXPath>./mods:mods/mods:extension/intranda:intranda/intranda:CoverageDates</WriteXPath-->
       </Metadata>
       <Metadata>
         <InternalName>DateNotes</InternalName>
         <WriteXPath>./mods:mods/mods:extension/intranda:intranda/intranda:DateNotes</WriteXPath>
       </Metadata>
-      <Metadata>
+      <!--Metadata>
         <InternalName>CreditLine</InternalName>
-        <WriteXPath>./mods:mods/mods:extension/intranda:intranda/intranda:CreditLine</WriteXPath>
-      </Metadata>
+        <WriteXPath>./mods:mods/mods:extension/intranda:intranda/intranda:credits</WriteXPath>
+      </Metadata-->
       <Metadata>
         <InternalName>InstitutionalKeyword</InternalName>
         <WriteXPath>./mods:mods/mods:extension/intranda:intranda/intranda:InstitutionalKeyword</WriteXPath>
@@ -6077,9 +6096,17 @@
       
       <Metadata>
         <InternalName>Abstract</InternalName>
-        <WriteXPath>./mods:mods/mods:extension/intranda:intranda/intranda:Abstract</WriteXPath>
+        <WriteXPath>./mods:mods/mods:abstract[@type="content"]</WriteXPath>
       </Metadata>
       
+      <Metadata>
+        <InternalName>DateRange</InternalName>
+        <WriteXPath>./mods:mods/mods:extension/intranda:intranda/intranda:DateRange</WriteXPath>
+      </Metadata>
+      <Metadata>
+        <InternalName>TypeOfMaterial</InternalName>
+        <WriteXPath>./mods:mods/mods:extension/intranda:intranda/intranda:TypeOfMaterial</WriteXPath>
+      </Metadata>
 	  <!-- ############################### // Wiener Library ##################################### -->
       
       <!-- Persons start -->
@@ -6517,8 +6544,15 @@
       <!-- Subjects start -->
       <Metadata>
         <InternalName>Subject</InternalName>
-        <WriteXPath>./mods:mods/mods:extension/intranda:intranda/#intranda:subject</WriteXPath>
+        <WriteXPath>./mods:mods/mods:subject/#mods:topic</WriteXPath>
       </Metadata>
+
+      <Metadata>
+                <InternalName>viewerinstance</InternalName>
+                <WriteXPath>./mods:mods/mods:extension/intranda:intranda/intranda:viewerinstance</WriteXPath>
+            </Metadata>
+
+
       <Metadata>
         <InternalName>SubjectCorporate</InternalName>
         <WriteXPath>./mods:mods/mods:extension/intranda:intranda/#intranda:subjectCorporate</WriteXPath>
@@ -6537,7 +6571,7 @@
       </Metadata>
       <Metadata>
         <InternalName>SubjectTopic</InternalName>
-        <WriteXPath>./mods:mods/mods:subject/#mods:topic</WriteXPath>
+        <WriteXPath>./mods:mods/mods:subject/#mods:topic12345</WriteXPath>
       </Metadata>
       <Metadata>
         <InternalName>SubjectTemporal</InternalName>
