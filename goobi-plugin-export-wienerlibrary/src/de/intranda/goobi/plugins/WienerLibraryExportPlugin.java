@@ -152,7 +152,6 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
             dsList.addAll(logical.getAllChildren());
         }
         for (DocStruct ds : dsList) {
-            log.debug("docstruct is " + ds.getType().getName());
             if (ds.getAllMetadata() != null) {
                 boolean foundEnglishTranscription = false;
                 for (Metadata md : ds.getAllMetadata()) {
@@ -174,10 +173,9 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
                 }
                 if (foundEnglishTranscription) {
                     try {
-
                         Metadata engl = new Metadata(myPrefs.getMetadataTypeByName("_hasEnglishTranslation"));
                         engl.setValue("true");
-                        ds.addMetadata(engl);
+                        ds.getAllMetadata().add(engl);
                     } catch (Exception e) {
                         log.error(e);
                     }
