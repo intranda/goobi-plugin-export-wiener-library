@@ -154,6 +154,7 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
         for (DocStruct ds : dsList) {
             if (ds.getAllMetadata() != null) {
                 boolean foundEnglishTranscription = false;
+
                 for (Metadata md : ds.getAllMetadata()) {
                     if (md.getType().getName().equals("Transcription_en") || md.getType().getName().equals("Translation_en")) {
                         //                        if (md.getType().getName().equals("Transcription_de") || md.getType().getName().equals("Transcription_en")
@@ -165,22 +166,22 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
                         String value = md.getValue();
                         String newValue = enrichMetadataWithVocabulary(value);
                         md.setValue(newValue);
-
-                        if ("Testimony".equals(ds.getType().getName())) {
-                            foundEnglishTranscription = true;
-                        }
+                        foundEnglishTranscription = true;
                     }
                 }
-                if (foundEnglishTranscription) {
+                if ("Testimony".equals(ds.getType().getName())) {
                     try {
                         Metadata engl = new Metadata(myPrefs.getMetadataTypeByName("_hasEnglishTranslation"));
-                        engl.setValue("true");
+                        if (foundEnglishTranscription) {
+                            engl.setValue("true");
+                        } else {
+                            engl.setValue("false");
+                        }
                         ds.getAllMetadata().add(engl);
                     } catch (Exception e) {
                         log.error(e);
                     }
                 }
-
             }
 
         }
