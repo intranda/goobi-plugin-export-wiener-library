@@ -177,7 +177,7 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
                         } else {
                             engl.setValue("false");
                         }
-                        ds.getAllMetadata().add(engl);
+                        logical.getAllMetadata().add(engl);
                     } catch (Exception e) {
                         log.error(e);
                     }
