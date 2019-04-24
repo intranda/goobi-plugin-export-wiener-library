@@ -43,6 +43,7 @@ import de.intranda.goobi.plugins.vocabulary.Field;
 import de.intranda.goobi.plugins.vocabulary.Record;
 import de.intranda.goobi.plugins.vocabulary.VocabularyManager;
 import de.intranda.goobi.utils.TextReplacement;
+import de.intranda.goobi.utils.VocabularyEnricher;
 import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.config.ConfigurationHelper;
 import de.sub.goobi.export.download.ExportMets;
@@ -546,65 +547,16 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
      * @return
      */
     private String enrichMetadataWithVocabulary(String value) {
-        try {
+        
+        String config = "plugin_intranda_administration_vocabulary.xml";
+        String vocabulary = "Wiener Library Glossary";
+        
+        File configFile = new File(new Helper().getGoobiConfigDirectory() + config);
+        
+        VocabularyEnricher enricher = new VocabularyEnricher(configFile, vocabulary);
+        
+        return enricher.enrich(value);
 
-            // initialise configuration for vocabulary manager file
-            String configfile = "plugin_intranda_administration_vocabulary.xml";
-            XMLConfiguration config;
-            try {
-                config = new XMLConfiguration(new Helper().getGoobiConfigDirectory() + configfile);
-            } catch (ConfigurationException e) {
-                logger.error(e);
-                config = new XMLConfiguration();
-            }
-            config.setListDelimiter('&');
-            config.setExpressionEngine(new XPathExpressionEngine());
-
-            // initialise vocabular manager and load correct vocabulary
-            VocabularyManager vm = new VocabularyManager(config);
-            vm.loadVocabulary("Wiener Library Glossary");
-            String newvalue = value;
-            List<TextReplacement> locations = new ArrayList<>();
-            for (Record record : vm.getVocabulary().getRecords()) {
-                List<String> keywords = null;
-                String description = "";
-                // first get the right fields from the record
-                for (Field field : record.getFields()) {
-                    if (field.getLabel().equals("Keywords")) {
-                        keywords = Arrays.asList(field.getValue().split("\\r?\\n"));
-                    }
-                    if (field.getLabel().equals("Description")) {
-                        description = field.getValue();
-                    }
-                }
-                // now run through all words of string and extend keywords with description
-                StringBuilder sb = new StringBuilder();
-                String wordRegex = "(?<![a-zA-ZäÄüÜöÖß])({keyword})(?![a-zA-ZäÄüÜöÖß])";
-                String note = "<note><term>" + record.getTitle() + "</term>" + StringEscapeUtils.escapeHtml(description) + "</note>";
-                for (String keyword : keywords) {
-                    //                        String replacement = " <span title=\"" + description + "\">$1</span>";
-                    String regex = wordRegex.replace("{keyword}", keyword);
-                    //                    newvalue = newvalue.replaceAll(regex, replacement);
-                    Pattern p = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
-                    Matcher m = p.matcher(newvalue);
-                    while (m.find()) {
-                        //                        locations.add(new Point(m.start(), m.end()));
-                        locations.add(new TextReplacement(m.start(), m.end(), note));
-                    }
-                    //                    String group = m.group();
-                }
-            }
-            Collections.sort(locations);
-            Collections.reverse(locations);
-            for (TextReplacement location : locations) {
-                String span = "<span>" + newvalue.substring(location.getStart(), location.getEnd()) + location.getReplacement() + "</span>";
-                newvalue = newvalue.substring(0, location.getStart()) + span + newvalue.substring(location.getEnd());
-            }
-            return newvalue;
-        } catch (Exception e) {
-            logger.error("Can't load vocabulary management", e);
-            return value;
-        }
     }
 
 }

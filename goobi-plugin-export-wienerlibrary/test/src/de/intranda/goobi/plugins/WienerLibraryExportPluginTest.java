@@ -54,6 +54,7 @@ public class WienerLibraryExportPluginTest {
         process = Mockito.spy(new Process());
         process.setRegelsatz(ruleset);
         process.setTitel("sample_process");
+        process.setId(1);
         Mockito.doReturn(sampleProcessFolder.getAbsolutePath() + "/").when(process).getProcessDataDirectory();
 //        Mockito.when(process.getProcessDataDirectory()).thenReturn(sampleProcessFolder.getAbsolutePath());
         Mockito.when(process.getProjekt()).thenReturn(project);
