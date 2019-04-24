@@ -94,8 +94,8 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
 
     @Override
     public boolean startExport(Process process, String destination) throws IOException, InterruptedException, DocStructHasNoTypeException,
-            PreferencesException, WriteException, MetadataTypeNotAllowedException, ExportFileException, UghHelperException, ReadException,
-            SwapException, DAOException, TypeNotAllowedForParentException {
+    PreferencesException, WriteException, MetadataTypeNotAllowedException, ExportFileException, UghHelperException, ReadException,
+    SwapException, DAOException, TypeNotAllowedForParentException {
         return startExport(process);
     }
 
@@ -114,9 +114,9 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
      */
     @Override
     public boolean startExport(Process process) throws IOException, InterruptedException, DocStructHasNoTypeException, PreferencesException,
-            WriteException, MetadataTypeNotAllowedException, ExportFileException, UghHelperException, ReadException, SwapException, DAOException,
-            TypeNotAllowedForParentException {
-       String imageDirectorySuffix = "_tif";
+    WriteException, MetadataTypeNotAllowedException, ExportFileException, UghHelperException, ReadException, SwapException, DAOException,
+    TypeNotAllowedForParentException {
+        String imageDirectorySuffix = "_tif";
 
         myPrefs = process.getRegelsatz().getPreferences();
         String atsPpnBand = process.getTitel();
@@ -148,26 +148,41 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
         // run through all docstructs
         List<DocStruct> dsList = new ArrayList<>();
         dsList.add(logical);
-        if(logical.getAllChildren() != null) {
+        if (logical.getAllChildren() != null) {
             dsList.addAll(logical.getAllChildren());
         }
-            for (DocStruct ds : dsList) {
-                log.debug("docstruct is " + ds.getType().getName());
-                if (ds.getAllMetadata() != null) {
-                    for (Metadata md : ds.getAllMetadata()) {
-                        if(md.getType().getName().equals("Transcription_en") || md.getType().getName().equals("Translation_en")) {
-//                        if (md.getType().getName().equals("Transcription_de") || md.getType().getName().equals("Transcription_en")
-//                                || md.getType().getName().equals("Transcription_fr") || md.getType().getName().equals("Transcription_nl")
-//                                || md.getType().getName().equals("Transcription_al") || md.getType().getName().equals("Transcription_it")
-//                                || md.getType().getName().equals("Translation_de") || md.getType().getName().equals("Translation_en")
-//                                || md.getType().getName().equals("Translation_fr") || md.getType().getName().equals("Translation_nl")
-//                                || md.getType().getName().equals("Translation_al") || md.getType().getName().equals("Translation_it")) {
-                            String value = md.getValue();
-                            String newValue = enrichMetadataWithVocabulary(value);
-                            md.setValue(newValue);
-                        }
+        for (DocStruct ds : dsList) {
+            boolean foundEnglishTranscription = false;
+            if (ds.getAllMetadata() != null) {
+
+                for (Metadata md : ds.getAllMetadata()) {
+                    if (md.getType().getName().equals("Transcription_en") || md.getType().getName().equals("Translation_en")) {
+                        //                        if (md.getType().getName().equals("Transcription_de") || md.getType().getName().equals("Transcription_en")
+                        //                                || md.getType().getName().equals("Transcription_fr") || md.getType().getName().equals("Transcription_nl")
+                        //                                || md.getType().getName().equals("Transcription_al") || md.getType().getName().equals("Transcription_it")
+                        //                                || md.getType().getName().equals("Translation_de") || md.getType().getName().equals("Translation_en")
+                        //                                || md.getType().getName().equals("Translation_fr") || md.getType().getName().equals("Translation_nl")
+                        //                                || md.getType().getName().equals("Translation_al") || md.getType().getName().equals("Translation_it")) {
+                        String value = md.getValue();
+                        String newValue = enrichMetadataWithVocabulary(value);
+                        md.setValue(newValue);
+                        foundEnglishTranscription = true;
                     }
                 }
+            }
+            if ("Testimony".equals(ds.getType().getName())) {
+                try {
+                    Metadata engl = new Metadata(myPrefs.getMetadataTypeByName("_hasEnglishTranslation"));
+                    if (foundEnglishTranscription) {
+                        engl.setValue("true");
+                    } else {
+                        engl.setValue("false");
+                    }
+                    logical.getAllMetadata().add(engl);
+                } catch (Exception e) {
+                    log.error(e);
+                }
+            }
 
         }
 
@@ -193,13 +208,14 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
         File exportFile = new File(exportfolder + File.separator + atsPpnBand + ".xml");
         File tempFile = Files.createTempFile(atsPpnBand + "__", ".xml").toFile();
         writeMetsFile(process, tempFile.getAbsolutePath(), gdzfile, false);
-        if(tempFile.exists()) {
+        if (tempFile.exists()) {
             logger.debug("Temporary export mets file written: " + tempFile.getAbsolutePath());
         } else {
             Helper.setFehlerMeldung("Export canceled, Process: " + process.getTitel(), "Failed to write temporary export mets file");
             return false;
         }
-        addFileGroup(tempFile.getAbsolutePath(), getTEIFiles(exportfolder + File.separator + atsPpnBand + "_tei"), getFileGroupName(), getFileGroupFolder(), getFileGroupMimeType());
+        addFileGroup(tempFile.getAbsolutePath(), getTEIFiles(exportfolder + File.separator + atsPpnBand + "_tei"), getFileGroupName(),
+                getFileGroupFolder(), getFileGroupMimeType());
         logger.debug("Moving temporary file " + tempFile + " to export file location " + exportFile);
         FileUtils.moveFile(tempFile, exportFile);
         return true;
@@ -212,7 +228,7 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
      */
     public void moveContent(File source, File target) throws IOException {
         File[] tempDirs = source.listFiles(new FileFilter() {
-            
+
             @Override
             public boolean accept(File pathname) {
                 return pathname.isDirectory();
@@ -224,15 +240,15 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
     }
 
     private File[] getTEIFiles(String teiFolder) {
-        try {            
+        try {
             return new File(teiFolder).listFiles(new FilenameFilter() {
-                
+
                 @Override
                 public boolean accept(File dir, String name) {
                     return name.toLowerCase().endsWith(".xml");
                 }
             });
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             logger.error("No TEI files for process");
             return new File[0];
         }
@@ -240,140 +256,137 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
 
     private boolean addFileGroup(String exportFile, File[] teiFiles, String name, String path, String mimeType) {
 
-            SAXBuilder parser = new SAXBuilder();
-            Document metsDoc = null;
-            try {
-                metsDoc = parser.build(exportFile);
-            } catch (JDOMException | IOException e) {
-                Helper.setFehlerMeldung("error while parsing amd file");
-                log.error("error while parsing amd file", e);
-                return false;
-            }
-            Element logFileGroup = new Element("fileGrp", metsNamespace);
-            Element fileSec = metsDoc.getRootElement().getChild("fileSec", metsNamespace);
-            if (fileSec == null) {
-                fileSec = new Element("fileSec", metsNamespace);
-                metsDoc.getRootElement().addContent(fileSec);
-            }
-            fileSec.addContent(logFileGroup);
+        SAXBuilder parser = new SAXBuilder();
+        Document metsDoc = null;
+        try {
+            metsDoc = parser.build(exportFile);
+        } catch (JDOMException | IOException e) {
+            Helper.setFehlerMeldung("error while parsing amd file");
+            log.error("error while parsing amd file", e);
+            return false;
+        }
+        Element logFileGroup = new Element("fileGrp", metsNamespace);
+        Element fileSec = metsDoc.getRootElement().getChild("fileSec", metsNamespace);
+        if (fileSec == null) {
+            fileSec = new Element("fileSec", metsNamespace);
+            metsDoc.getRootElement().addContent(fileSec);
+        }
+        fileSec.addContent(logFileGroup);
 
-            logFileGroup.setAttribute("USE", name);
+        logFileGroup.setAttribute("USE", name);
 
-            int index = 0;
-            for (File teiFile : teiFiles) {
-                
-                Element file = new Element("file", metsNamespace);
-                file.setAttribute("MIMETYPE", mimeType);
-                file.setAttribute("ID", "FILE_" + new DecimalFormat("0000").format(index) + "_" + name);
-                logFileGroup.addContent(file);
-                
-                Element flocat = new Element("FLocat", metsNamespace);
-                flocat.setAttribute("href", path + teiFile.getName() , xlink);
-                flocat.setAttribute("LOCTYPE", "URL");
-                file.addContent(flocat);
-                
-                index++;
-            }
-            
+        int index = 0;
+        for (File teiFile : teiFiles) {
 
-            XMLOutputter outputter = new XMLOutputter(Format.getPrettyFormat());
+            Element file = new Element("file", metsNamespace);
+            file.setAttribute("MIMETYPE", mimeType);
+            file.setAttribute("ID", "FILE_" + new DecimalFormat("0000").format(index) + "_" + name);
+            logFileGroup.addContent(file);
 
-            try {
-                FileOutputStream output = new FileOutputStream(exportFile);
-                outputter.output(metsDoc, output);
-                return true;
-            } catch (IOException e) {
-                Helper.setFehlerMeldung("error while writing mets file");
-                log.error("error while writing mets file", e);
-                return false;
-            }
-        
+            Element flocat = new Element("FLocat", metsNamespace);
+            flocat.setAttribute("href", path + teiFile.getName(), xlink);
+            flocat.setAttribute("LOCTYPE", "URL");
+            file.addContent(flocat);
+
+            index++;
+        }
+
+        XMLOutputter outputter = new XMLOutputter(Format.getPrettyFormat());
+
+        try {
+            FileOutputStream output = new FileOutputStream(exportFile);
+            outputter.output(metsDoc, output);
+            return true;
+        } catch (IOException e) {
+            Helper.setFehlerMeldung("error while writing mets file");
+            log.error("error while writing mets file", e);
+            return false;
+        }
+
     }
-
 
     private String getFileGroupFolder() {
         return ConfigPlugins.getPluginConfig(getTitle()).getString("fullText.fileGroup.location", "file:///opt/digiverso/viewer/tei/");
     }
-    
+
     private String getFileGroupName() {
         return ConfigPlugins.getPluginConfig(getTitle()).getString("fullText.fileGroup.name", "TEI");
     }
-    
+
     private String getFileGroupMimeType() {
         return ConfigPlugins.getPluginConfig(getTitle()).getString("fullText.fileGroup.mimeType", "text/xml");
     }
-
 
     private void removeOcrMetadata(DocStruct logical) {
         Pattern fulltextMetadataPattern = Pattern.compile(FULLTEXT_METADATA_REGEX);
 
         List<DocStruct> dsList = new ArrayList<>();
         dsList.add(logical);
-        if(logical.getAllChildren() != null) {                
+        if (logical.getAllChildren() != null) {
             dsList.addAll(logical.getAllChildren());
         }
         for (DocStruct ds : dsList) {
-                log.debug("docstruct is " + ds.getType().getName());
-                log.debug("docstruct id is " + ds.getIdentifier());
-                if (ds.getAllMetadata() != null) {
-                    List<Metadata> mdList = new ArrayList<>(ds.getAllMetadata());
-                    for (Metadata md : mdList) {
-                        Matcher matcher = fulltextMetadataPattern.matcher(md.getType().getName());
-                        if (matcher.matches()) {
-                            ds.removeMetadata(md, true);
-                        }
+            log.debug("docstruct is " + ds.getType().getName());
+            log.debug("docstruct id is " + ds.getIdentifier());
+            if (ds.getAllMetadata() != null) {
+                List<Metadata> mdList = new ArrayList<>(ds.getAllMetadata());
+                for (Metadata md : mdList) {
+                    Matcher matcher = fulltextMetadataPattern.matcher(md.getType().getName());
+                    if (matcher.matches()) {
+                        ds.removeMetadata(md, true);
                     }
                 }
+            }
         }
 
     }
 
     private void writeOcrFiles(Process process, String exportFolderPath, String title, DocStruct logical) throws WriteException, IOException {
         Path exportFolder = Paths.get(exportFolderPath, title + "_tei");
-        if(!Files.exists(exportFolder)) {            
+        if (!Files.exists(exportFolder)) {
             Files.createDirectory(exportFolder);
         }
         Pattern fulltextMetadataPattern = Pattern.compile(FULLTEXT_METADATA_REGEX);
 
-            Map<String, List<String>> texts = new HashMap<>();
-            List<DocStruct> dsList = new ArrayList<>();
-            dsList.add(logical);
-            if(logical.getAllChildren() != null) {                
-                dsList.addAll(logical.getAllChildren());
-            }
-            for (DocStruct ds : dsList) {
-                log.debug("docstruct is " + ds.getType().getName());
-                log.debug("docstruct id is " + ds.getIdentifier());
-                if (ds.getAllMetadata() != null) {
-                    for (Metadata md : ds.getAllMetadata()) {
-                        Matcher matcher = fulltextMetadataPattern.matcher(md.getType().getName());
-                        if (matcher.matches()) {
-                            String language = matcher.group(1);
-                            List<String> list = texts.get(language);
-                            if (list == null) {
-                                list = new ArrayList<>();
-                                texts.put(language, list);
-                            }
-                            list.add(md.getValue());
+        Map<String, List<String>> texts = new HashMap<>();
+        List<DocStruct> dsList = new ArrayList<>();
+        dsList.add(logical);
+        if (logical.getAllChildren() != null) {
+            dsList.addAll(logical.getAllChildren());
+        }
+        for (DocStruct ds : dsList) {
+            log.debug("docstruct is " + ds.getType().getName());
+            log.debug("docstruct id is " + ds.getIdentifier());
+            if (ds.getAllMetadata() != null) {
+                for (Metadata md : ds.getAllMetadata()) {
+                    Matcher matcher = fulltextMetadataPattern.matcher(md.getType().getName());
+                    if (matcher.matches()) {
+                        String language = matcher.group(1);
+                        List<String> list = texts.get(language);
+                        if (list == null) {
+                            list = new ArrayList<>();
+                            texts.put(language, list);
                         }
+                        list.add(md.getValue());
                     }
                 }
             }
-            for (String language : texts.keySet()) {
-                String filename = title + "_tei_" + language + ".xml";
-                try {
-                    writeTEIFile(exportFolder.resolve(filename), texts.get(language), language);
-                } catch (JDOMException e) {
-                    FileUtils.deleteDirectory(exportFolder.toFile());
-                    throw new WriteException("Error writing tei file '" + exportFolder.resolve(filename) + "'", e);
-                    //					log.error("Error writing tei file '" + exportFolder.resolve(filename) + "'", e);
-                } catch (IOException e) {
-                    FileUtils.deleteDirectory(exportFolder.toFile());
-                    throw e;
-
-                }
+        }
+        for (String language : texts.keySet()) {
+            String filename = title + "_tei_" + language + ".xml";
+            try {
+                writeTEIFile(exportFolder.resolve(filename), texts.get(language), language);
+            } catch (JDOMException e) {
+                FileUtils.deleteDirectory(exportFolder.toFile());
+                throw new WriteException("Error writing tei file '" + exportFolder.resolve(filename) + "'", e);
+                //					log.error("Error writing tei file '" + exportFolder.resolve(filename) + "'", e);
+            } catch (IOException e) {
+                FileUtils.deleteDirectory(exportFolder.toFile());
+                throw e;
 
             }
+
+        }
 
     }
 
@@ -399,8 +412,8 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
      * @throws SwapException
      * @throws DAOException
      */
-    public void fulltextDownload(Process process, File exportfolder, String atsPpnBand)
-            throws IOException, InterruptedException, SwapException, DAOException {
+    public void fulltextDownload(Process process, File exportfolder, String atsPpnBand) throws IOException, InterruptedException, SwapException,
+    DAOException {
 
         // download sources
         Path sources = Paths.get(process.getSourceDirectory());
@@ -449,8 +462,8 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
      * @throws SwapException
      * @throws DAOException
      */
-    public void imageDownload(Process process, File exportfolder, String atsPpnBand, final String ordnerEndung)
-            throws IOException, InterruptedException, SwapException, DAOException {
+    public void imageDownload(Process process, File exportfolder, String atsPpnBand, final String ordnerEndung) throws IOException,
+    InterruptedException, SwapException, DAOException {
 
         File tifOrdner = new File(process.getImagesTifDirectory(true));
         File zielTif = new File(exportfolder + File.separator + atsPpnBand + ordnerEndung);
@@ -487,7 +500,8 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
                         // check if source files exists
                         if (pfg.getFolder() != null && pfg.getFolder().length() > 0) {
                             Path folder = Paths.get(process.getMethodFromName(pfg.getFolder()));
-                            if (folder != null && java.nio.file.Files.exists(folder) && !StorageProvider.getInstance().list(folder.toString()).isEmpty()) {
+                            if (folder != null && java.nio.file.Files.exists(folder) && !StorageProvider.getInstance().list(folder.toString())
+                                    .isEmpty()) {
                                 List<Path> files = StorageProvider.getInstance().listFiles(folder.toString());
                                 for (Path file : files) {
                                     Path target = Paths.get(zielTif.toString(), file.getFileName().toString());
@@ -568,16 +582,16 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
                 String wordRegex = "(?<![a-zA-ZäÄüÜöÖß])({keyword})(?![a-zA-ZäÄüÜöÖß])";
                 String note = "<note><term>" + record.getTitle() + "</term>" + StringEscapeUtils.escapeHtml(description) + "</note>";
                 for (String keyword : keywords) {
-//                        String replacement = " <span title=\"" + description + "\">$1</span>";
+                    //                        String replacement = " <span title=\"" + description + "\">$1</span>";
                     String regex = wordRegex.replace("{keyword}", keyword);
-//                    newvalue = newvalue.replaceAll(regex, replacement);
+                    //                    newvalue = newvalue.replaceAll(regex, replacement);
                     Pattern p = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
                     Matcher m = p.matcher(newvalue);
-                    while(m.find()) {
-//                        locations.add(new Point(m.start(), m.end()));
+                    while (m.find()) {
+                        //                        locations.add(new Point(m.start(), m.end()));
                         locations.add(new TextReplacement(m.start(), m.end(), note));
                     }
-//                    String group = m.group();
+                    //                    String group = m.group();
                 }
             }
             Collections.sort(locations);
