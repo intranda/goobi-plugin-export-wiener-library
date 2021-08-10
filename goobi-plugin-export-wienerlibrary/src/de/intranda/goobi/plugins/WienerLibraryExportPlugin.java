@@ -11,19 +11,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.goobi.beans.Process;
 import org.goobi.beans.ProjectFileGroup;
 import org.goobi.beans.User;
@@ -39,10 +33,6 @@ import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 
 import de.intranda.goobi.ocr.tei.TEIBuilder;
-import de.intranda.goobi.plugins.vocabulary.Field;
-import de.intranda.goobi.plugins.vocabulary.Record;
-import de.intranda.goobi.plugins.vocabulary.VocabularyManager;
-import de.intranda.goobi.utils.TextReplacement;
 import de.intranda.goobi.utils.VocabularyEnricher;
 import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.config.ConfigurationHelper;
@@ -477,7 +467,7 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
                         zielTif.mkdir();
                     }
                 } else {
-                    User myBenutzer = (User) Helper.getManagedBeanValue("#{LoginForm.myBenutzer}");
+                    User myBenutzer = Helper.getCurrentUser();
                     try {
                         FilesystemHelper.createDirectoryForUser(zielTif.getAbsolutePath(), myBenutzer.getLogin());
                     } catch (Exception e) {
@@ -547,14 +537,12 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
      * @return
      */
     private String enrichMetadataWithVocabulary(String value) {
-        
-        String config = "plugin_intranda_administration_vocabulary.xml";
+
+
         String vocabulary = "Wiener Library Glossary";
-        
-        File configFile = new File(new Helper().getGoobiConfigDirectory() + config);
-        
-        VocabularyEnricher enricher = new VocabularyEnricher(configFile, vocabulary);
-        
+
+        VocabularyEnricher enricher = new VocabularyEnricher(vocabulary);
+
         return enricher.enrich(value);
 
     }

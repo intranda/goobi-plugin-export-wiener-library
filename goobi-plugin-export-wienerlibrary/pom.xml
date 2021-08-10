@@ -97,17 +97,18 @@
       <artifactId>goobi-core-jar</artifactId>
       <version>${goobi.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>1.18.4</version>
+      <scope>provided</scope>
+    </dependency>    
     <!-- https://mvnrepository.com/artifact/junit/junit -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.12</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>de.intranda.goobi.plugins.administration</groupId>
-      <artifactId>vocabulary-main</artifactId>
-      <version>1.0.0</version>
     </dependency>
     <!-- https://mvnrepository.com/artifact/org.mockito/mockito-all -->
     <dependency>
