@@ -6,7 +6,7 @@
   <properties>
     <jar.name>plugin_intranda_export_wienerlibrary</jar.name>
     <dest.folder>/opt/digiverso/goobi/plugins/export/</dest.folder>
-    <goobi.version>21.07</goobi.version>
+    <goobi.version>21.08</goobi.version>
   </properties>
   <distributionManagement>
     <repository>
@@ -102,7 +102,7 @@
       <artifactId>lombok</artifactId>
       <version>1.18.4</version>
       <scope>provided</scope>
-    </dependency>    
+    </dependency>
     <!-- https://mvnrepository.com/artifact/junit/junit -->
     <dependency>
       <groupId>junit</groupId>
