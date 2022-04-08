@@ -48,7 +48,7 @@ import de.sub.goobi.helper.exceptions.SwapException;
 import de.sub.goobi.helper.exceptions.UghHelperException;
 import de.sub.goobi.metadaten.MetadatenHelper;
 import lombok.Data;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
 import ugh.dl.DocStruct;
 import ugh.dl.ExportFileformat;
@@ -62,7 +62,7 @@ import ugh.exceptions.TypeNotAllowedForParentException;
 import ugh.exceptions.WriteException;
 
 @Data
-@Log4j
+@Log4j2
 @PluginImplementation
 public class WienerLibraryExportPlugin extends ExportMets implements IExportPlugin, IPlugin {
     private static final String PLUGIN_NAME = "intranda_export_wienerlibrary";
@@ -123,7 +123,7 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
 
         } catch (Exception e) {
             Helper.setFehlerMeldung(Helper.getTranslation("exportError") + process.getTitel(), e);
-            logger.error("Export abgebrochen, xml-LeseFehler", e);
+            log.error("Export abgebrochen, xml-LeseFehler", e);
             return false;
         }
 
@@ -189,7 +189,7 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
             writeOcrFiles(process, tempFolder.toString(), atsPpnBand, logical);
             removeOcrMetadata(logical);
         } catch (Exception e) {
-            logger.error(e.toString(), e);
+            log.error(e.toString(), e);
             Helper.setFehlerMeldung("Export canceled, Process: " + process.getTitel(), e);
             return false;
         }
@@ -200,14 +200,14 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
         File tempFile = Files.createTempFile(atsPpnBand + "__", ".xml").toFile();
         writeMetsFile(process, tempFile.getAbsolutePath(), gdzfile, false);
         if (tempFile.exists()) {
-            logger.debug("Temporary export mets file written: " + tempFile.getAbsolutePath());
+            log.debug("Temporary export mets file written: " + tempFile.getAbsolutePath());
         } else {
             Helper.setFehlerMeldung("Export canceled, Process: " + process.getTitel(), "Failed to write temporary export mets file");
             return false;
         }
         addFileGroup(tempFile.getAbsolutePath(), getTEIFiles(exportfolder + File.separator + atsPpnBand + "_tei"), getFileGroupName(),
                 getFileGroupFolder(), getFileGroupMimeType());
-        logger.debug("Moving temporary file " + tempFile + " to export file location " + exportFile);
+        log.debug("Moving temporary file " + tempFile + " to export file location " + exportFile);
         FileUtils.moveFile(tempFile, exportFile);
         return true;
     }
@@ -240,7 +240,7 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
                 }
             });
         } catch (Throwable e) {
-            logger.error("No TEI files for process");
+            log.error("No TEI files for process");
             return new File[0];
         }
     }
@@ -387,9 +387,9 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
             builder.addTextSegment(text);
         }
         XMLOutputter writer = new XMLOutputter();
-        logger.debug("Write tei file to " + filepath);
+        log.debug("Write tei file to " + filepath);
         writer.output(builder.build(), new FileWriter(filepath.toFile()));
-        logger.debug(filepath + " written");
+        log.debug(filepath + " written");
     }
 
     /**
@@ -472,7 +472,7 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
                         FilesystemHelper.createDirectoryForUser(zielTif.getAbsolutePath(), myBenutzer.getLogin());
                     } catch (Exception e) {
                         Helper.setFehlerMeldung("Export canceled, error", "could not create destination directory");
-                        logger.error("could not create destination directory", e);
+                        log.error("could not create destination directory", e);
                     }
                 }
 
