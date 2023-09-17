@@ -11,16 +11,27 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
+import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.goobi.beans.Process;
+import org.goobi.beans.Project;
 import org.goobi.beans.ProjectFileGroup;
 import org.goobi.beans.User;
+import org.goobi.production.enums.LogType;
 import org.goobi.production.enums.PluginType;
 import org.goobi.production.plugin.interfaces.IExportPlugin;
 import org.goobi.production.plugin.interfaces.IPlugin;
@@ -47,6 +58,7 @@ import de.sub.goobi.helper.exceptions.ExportFileException;
 import de.sub.goobi.helper.exceptions.SwapException;
 import de.sub.goobi.helper.exceptions.UghHelperException;
 import de.sub.goobi.metadaten.MetadatenHelper;
+import de.sub.goobi.persistence.managers.ProjectManager;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
@@ -69,6 +81,7 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
     private static final Namespace metsNamespace = Namespace.getNamespace("mets", "http://www.loc.gov/METS/");
     private static final Namespace xlink = Namespace.getNamespace("xlink", "http://www.w3.org/1999/xlink");
     private static final String FULLTEXT_METADATA_REGEX = "(?:Transcription|Translation)_(\\w{1,3})";
+    private static final String EXPORT_IMAGE_DIRECTORY_SUFFIX = "_tif";
 
     private boolean exportWithImages = true;
     private boolean exportFulltext = true;
@@ -85,8 +98,8 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
 
     @Override
     public boolean startExport(Process process, String destination) throws IOException, InterruptedException, DocStructHasNoTypeException,
-    PreferencesException, WriteException, MetadataTypeNotAllowedException, ExportFileException, UghHelperException, ReadException,
-    SwapException, DAOException, TypeNotAllowedForParentException {
+            PreferencesException, WriteException, MetadataTypeNotAllowedException, ExportFileException, UghHelperException, ReadException,
+            SwapException, DAOException, TypeNotAllowedForParentException {
         return startExport(process);
     }
 
@@ -105,17 +118,73 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
      */
     @Override
     public boolean startExport(Process process) throws IOException, InterruptedException, DocStructHasNoTypeException, PreferencesException,
-    WriteException, MetadataTypeNotAllowedException, ExportFileException, UghHelperException, ReadException, SwapException, DAOException,
-    TypeNotAllowedForParentException {
-        String imageDirectorySuffix = "_tif";
+            WriteException, MetadataTypeNotAllowedException, ExportFileException, UghHelperException, ReadException, SwapException, DAOException,
+            TypeNotAllowedForParentException {
 
         myPrefs = process.getRegelsatz().getPreferences();
         String atsPpnBand = process.getTitel();
+        Fileformat internalFileformat = process.readMetadataFile();
+        internalFileformat.read(process.getMetadataFilePath());
+        VariableReplacer replacer = new VariableReplacer(internalFileformat.getDigitalDocument(), this.myPrefs, process, null);
 
-        Fileformat gdzfile;
+        Collection<Project> projects = getConfiguredProjects(process, replacer);
+        
+        Project defaultProject = process.getProjekt();
+        Map<Project, Boolean> results = new LinkedHashMap<>();
+        for (Project project : projects) {
+            process.setProjekt(project);
+            boolean exported = exportFiles(process, atsPpnBand, replacer);
+            results.put(project, exported);
+            process.setProjekt(defaultProject);
+        }
+        if(results.values().stream().allMatch(b -> b)) {
+            log.info("Successfully exported {} for all configured project configurations", process.getTitel());
+            Helper.setMeldung("Successfully exported " +process.getTitel()+ " for all configured project configurations");
+            return true;
+        } else {
+            results.entrySet().stream().filter(e -> !e.getValue()).map(e -> e.getKey()).forEach(pr -> {
+                log.error("Export of {} failed for project configuration {}", process.getTitel(), pr.getTitel());
+                Helper.setFehlerMeldung("Export of "+process.getTitel()+" failed for project configuration " + pr.getTitel());
+                problems.add("Export of "+process.getTitel()+" failed for project configuration " + pr.getTitel());
+            });
+            return false;
+        }
+    }
+
+    private Collection<Project> getConfiguredProjects(Process process, VariableReplacer replacer) {
+        List<HierarchicalConfiguration> allTargetConfigs = getConfig(process).configurationsAt("target");
+        Set<Project> projects = new TreeSet<>();
+        for (HierarchicalConfiguration config : allTargetConfigs) {
+            String key = config.getString("@key", "");
+            String value = config.getString("@value", "");
+            String projectName = config.getString("@projectName", "");
+            if(StringUtils.isBlank(key) || replacer.replace(key).equals(replacer.replace(value))) {
+                if(StringUtils.isBlank(projectName)) {
+                    projects.add(process.getProjekt());
+                } else {
+                    try {                        
+                        Project project = ProjectManager.getProjectByName(projectName);
+                        projects.add(project);
+                    } catch (DAOException ex) {
+                        String message = "Export cancelled! A target condition was met but the project " + projectName
+                                + " does not exist. Ignoring this target";
+                        log.error(message, ex);
+                        Helper.setFehlerMeldung(message, ex);
+                        Helper.addMessageToProcessJournal(process.getId(), LogType.DEBUG, message);
+                        problems.add(message + ex.getMessage());
+                    }
+                }
+            }
+        }
+        return projects;
+    }
+
+    public boolean exportFiles(Process process, String atsPpnBand, VariableReplacer replacer)
+            throws PreferencesException, IOException, WriteException, InterruptedException, SwapException, DAOException,
+            TypeNotAllowedForParentException {
 
         ExportFileformat newfile = MetadatenHelper.getExportFileformatByName(process.getProjekt().getFileFormatDmsExport(), process.getRegelsatz());
-
+        Fileformat gdzfile;
         try {
             gdzfile = process.readMetadataFile();
             newfile.setDigitalDocument(gdzfile.getDigitalDocument());
@@ -127,10 +196,8 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
             return false;
         }
 
-        VariableReplacer replacer = new VariableReplacer(gdzfile.getDigitalDocument(), this.myPrefs, process, null);
         String path = replacer.replace(process.getProjekt().getDmsImportRootPath());
         File exportfolder = new File(path);
-        //      File exportfolder = new File(ConfigPlugins.getPluginConfig(PLUGIN_NAME).getString("exportFolder"));
 
         DocStruct logical = gdzfile.getDigitalDocument().getLogicalDocStruct();
         if (logical.getType().isAnchor()) {
@@ -142,46 +209,13 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
         if (logical.getAllChildren() != null) {
             dsList.addAll(logical.getAllChildren());
         }
-        for (DocStruct ds : dsList) {
-            boolean foundEnglishTranscription = false;
-            if (ds.getAllMetadata() != null) {
-
-                for (Metadata md : ds.getAllMetadata()) {
-                    if (md.getType().getName().equals("Transcription_en") || md.getType().getName().equals("Translation_en")) {
-                        //                        if (md.getType().getName().equals("Transcription_de") || md.getType().getName().equals("Transcription_en")
-                        //                                || md.getType().getName().equals("Transcription_fr") || md.getType().getName().equals("Transcription_nl")
-                        //                                || md.getType().getName().equals("Transcription_al") || md.getType().getName().equals("Transcription_it")
-                        //                                || md.getType().getName().equals("Translation_de") || md.getType().getName().equals("Translation_en")
-                        //                                || md.getType().getName().equals("Translation_fr") || md.getType().getName().equals("Translation_nl")
-                        //                                || md.getType().getName().equals("Translation_al") || md.getType().getName().equals("Translation_it")) {
-                        String value = md.getValue();
-                        String newValue = enrichMetadataWithVocabulary(value);
-                        md.setValue(newValue);
-                        foundEnglishTranscription = true;
-                    }
-                }
-            }
-            if ("Testimony".equals(ds.getType().getName())) {
-                try {
-                    Metadata engl = new Metadata(myPrefs.getMetadataTypeByName("_hasEnglishTranslation"));
-                    if (foundEnglishTranscription) {
-                        engl.setValue("true");
-                    } else {
-                        engl.setValue("false");
-                    }
-                    logical.getAllMetadata().add(engl);
-                } catch (Exception e) {
-                    log.error(e);
-                }
-            }
-
-        }
+        enrichtTranslations(logical, dsList);
 
         // start export of images and fulltext
         Path tempFolder = Files.createTempDirectory(atsPpnBand + "__");
         try {
             if (this.exportWithImages) {
-                imageDownload(process, tempFolder.toFile(), atsPpnBand, imageDirectorySuffix);
+                imageDownload(process, tempFolder.toFile(), atsPpnBand, EXPORT_IMAGE_DIRECTORY_SUFFIX);
                 fulltextDownload(process, tempFolder.toFile(), atsPpnBand);
             } else if (this.exportFulltext) {
                 fulltextDownload(process, tempFolder.toFile(), atsPpnBand);
@@ -205,11 +239,42 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
             Helper.setFehlerMeldung("Export canceled, Process: " + process.getTitel(), "Failed to write temporary export mets file");
             return false;
         }
-        addFileGroup(tempFile.getAbsolutePath(), getTEIFiles(exportfolder + File.separator + atsPpnBand + "_tei"), getFileGroupName(),
-                getFileGroupFolder(), getFileGroupMimeType());
+        addFileGroup(tempFile.getAbsolutePath(), getTEIFiles(exportfolder + File.separator + atsPpnBand + "_tei"), getFileGroupName(process),
+                getFileGroupFolder(process), getFileGroupMimeType(process));
         log.debug("Moving temporary file " + tempFile + " to export file location " + exportFile);
         FileUtils.moveFile(tempFile, exportFile);
         return true;
+    }
+
+    public void enrichtTranslations(DocStruct logical, List<DocStruct> dsList) {
+        for (DocStruct ds : dsList) {
+            boolean foundEnglishTranscription = false;
+            if (ds.getAllMetadata() != null) {
+
+                for (Metadata md : ds.getAllMetadata()) {
+                    if (md.getType().getName().equals("Transcription_en") || md.getType().getName().equals("Translation_en")) {
+                        String value = md.getValue();
+                        String newValue = enrichMetadataWithVocabulary(value);
+                        md.setValue(newValue);
+                        foundEnglishTranscription = true;
+                    }
+                }
+            }
+            if ("Testimony".equals(ds.getType().getName())) {
+                try {
+                    Metadata engl = new Metadata(myPrefs.getMetadataTypeByName("_hasEnglishTranslation"));
+                    if (foundEnglishTranscription) {
+                        engl.setValue("true");
+                    } else {
+                        engl.setValue("false");
+                    }
+                    logical.getAllMetadata().add(engl);
+                } catch (Exception e) {
+                    log.error(e);
+                }
+            }
+
+        }
     }
 
     /**
@@ -296,16 +361,16 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
 
     }
 
-    private String getFileGroupFolder() {
-        return ConfigPlugins.getPluginConfig(getTitle()).getString("fullText.fileGroup.location", "file:///opt/digiverso/viewer/tei/");
+    private String getFileGroupFolder(Process process) {
+        return getConfig(process).getString("fullText.fileGroup.location", "file:///opt/digiverso/viewer/tei/");
     }
 
-    private String getFileGroupName() {
-        return ConfigPlugins.getPluginConfig(getTitle()).getString("fullText.fileGroup.name", "TEI");
+    private String getFileGroupName(Process process) {
+        return getConfig(process).getString("fullText.fileGroup.name", "TEI");
     }
 
-    private String getFileGroupMimeType() {
-        return ConfigPlugins.getPluginConfig(getTitle()).getString("fullText.fileGroup.mimeType", "text/xml");
+    private String getFileGroupMimeType(Process process) {
+        return getConfig(process).getString("fullText.fileGroup.mimeType", "text/xml");
     }
 
     private void removeOcrMetadata(DocStruct logical) {
@@ -404,7 +469,7 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
      * @throws DAOException
      */
     public void fulltextDownload(Process process, File exportfolder, String atsPpnBand) throws IOException, InterruptedException, SwapException,
-    DAOException {
+            DAOException {
 
         // download sources
         Path sources = Paths.get(process.getSourceDirectory());
@@ -454,7 +519,7 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
      * @throws DAOException
      */
     public void imageDownload(Process process, File exportfolder, String atsPpnBand, final String ordnerEndung) throws IOException,
-    InterruptedException, SwapException, DAOException {
+            InterruptedException, SwapException, DAOException {
 
         File tifOrdner = new File(process.getImagesTifDirectory(true));
         File zielTif = new File(exportfolder + File.separator + atsPpnBand + ordnerEndung);
@@ -491,7 +556,8 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
                         // check if source files exists
                         if (pfg.getFolder() != null && pfg.getFolder().length() > 0) {
                             Path folder = Paths.get(process.getMethodFromName(pfg.getFolder()));
-                            if (folder != null && java.nio.file.Files.exists(folder) && !StorageProvider.getInstance().list(folder.toString())
+                            if (folder != null && java.nio.file.Files.exists(folder) && !StorageProvider.getInstance()
+                                    .list(folder.toString())
                                     .isEmpty()) {
                                 List<Path> files = StorageProvider.getInstance().listFiles(folder.toString());
                                 for (Path file : files) {
@@ -538,12 +604,41 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
      */
     private String enrichMetadataWithVocabulary(String value) {
 
-
         String vocabulary = "Wiener Library Glossary";
 
         VocabularyEnricher enricher = new VocabularyEnricher(vocabulary);
 
         return enricher.enrich(value);
+
+    }
+
+    private HierarchicalConfiguration getConfig(Process process) {
+        String projectName = process.getProjekt().getTitel();
+        XMLConfiguration xmlConfig = ConfigPlugins.getPluginConfig(PLUGIN_NAME);
+        xmlConfig.setExpressionEngine(new XPathExpressionEngine());
+        xmlConfig.setReloadingStrategy(new FileChangedReloadingStrategy());
+        HierarchicalConfiguration conf = null;
+
+        // order of configuration is:
+        // 1.) project name matches
+        // 2.) project is *
+        try {
+            conf = xmlConfig.configurationAt("//config[./project = '" + projectName + "']");
+        } catch (IllegalArgumentException e) {
+            try {                
+                conf = xmlConfig.configurationAt("//config[./project = '*']");
+            } catch (IllegalArgumentException e1) {
+                try {                
+                    conf = xmlConfig.configurationAt("//config");
+                } catch (IllegalArgumentException e2) {
+                    log.error("No unique configuration section found for plugin {} and project {}", PLUGIN_NAME, projectName);
+                    Helper.setFehlerMeldung("Missing configuration option for plugin " + PLUGIN_NAME + ". Use default settings");
+                    problems.add("Missing configuration option for plugin " + PLUGIN_NAME + ". Use default settings");
+                    conf = new XMLConfiguration();
+                }
+            }
+        }
+        return conf;
 
     }
 

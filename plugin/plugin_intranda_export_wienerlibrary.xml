@@ -1,11 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config_plugin>
-	<exportFolder>/opt/digiverso/viewer/hotfolder/</exportFolder>
-    <fullText>
-        <fileGroup>
-            <name>TEI</name>
-            <location>file:///opt/digiverso/viewer/tei/</location>
-            <mimeType>text/xml</mimeType>
-        </fileGroup>
-    </fullText>
+	<config>
+		<!-- targets determine which project configurations are used to export the files. 
+		Targets are used conditionally depending on the key/value attributes. More than one target may be used, then the files
+		are exported serveral times. If no target matches, the processes native project is used for export -->
+		<!-- target with no condition an no project name. This is always used an exports according to the processes project configuration -->
+		<target key="" value="" projectName="" />
+		<!-- This target is used if the metadata field "foo" exists and has the value "bar". It uses the export configuration of project "otherProject" -->
+        <target key="{meta.foo}" value="bar" projectName="otherProject" />
+	    <fullText>
+	        <fileGroup>
+	            <name>TEI</name>
+	            <location>file:///opt/digiverso/viewer/tei/</location>
+	            <mimeType>text/xml</mimeType>
+	        </fileGroup>
+	    </fullText>
+	</config>
+	
 </config_plugin>
