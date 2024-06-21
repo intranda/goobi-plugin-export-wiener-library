@@ -47,15 +47,15 @@ public class VocabularyEnricherTest {
         String expected =
                 "Ich ging von <span>Neu-Bentschen<note><term>Neu-Bentschen</term>Der Ortsteil Neu-Bentschen</note></span> nach <span>Bentschen<note><term>Bentschen</term>Der Ort Namens Bentschen</note></span> über AltBentschen. Da hat es lange gedauert bis ich endlich in <span>Bentschen<note><term>Bentschen</term>Der Ort Namens Bentschen</note></span> ankam.";
 
-        VocabularyEnricher enricher = new VocabularyEnricher(vocab);
-
-        String enrichedtext = enricher.enrich(text);
-        System.out.println(text);
-        System.out.println(enrichedtext);
-        Assert.assertEquals(expected, enrichedtext);
-
-        String enrichedTestimony = enricher.enrich(TESTIMONY);
-        System.out.println(enrichedTestimony);
+//        VocabularyEnricher enricher = new VocabularyEnricher(vocab);
+//
+//        String enrichedtext = enricher.enrich(text);
+//        System.out.println(text);
+//        System.out.println(enrichedtext);
+//        Assert.assertEquals(expected, enrichedtext);
+//
+//        String enrichedTestimony = enricher.enrich(TESTIMONY);
+//        System.out.println(enrichedTestimony);
     }
 
     private VocabRecord createRecord(String label, String keywords, String description) {

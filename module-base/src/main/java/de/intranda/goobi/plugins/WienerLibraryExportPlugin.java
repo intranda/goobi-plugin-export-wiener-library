@@ -82,6 +82,9 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
     private static final Namespace xlink = Namespace.getNamespace("xlink", "http://www.w3.org/1999/xlink");
     private static final String FULLTEXT_METADATA_REGEX = "(?:Transcription|Translation)_(\\w{1,3})";
     private static final String EXPORT_IMAGE_DIRECTORY_SUFFIX = "_tif";
+    private static final String GLOSSARY_VOCABULARY_NAME = "Wiener Library Glossary";
+
+    private VocabularyEnricher enricher = new VocabularyEnricher(GLOSSARY_VOCABULARY_NAME);
 
     private boolean exportWithImages = true;
     private boolean exportFulltext = true;
@@ -603,13 +606,7 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
      * @return
      */
     private String enrichMetadataWithVocabulary(String value) {
-
-        String vocabulary = "Wiener Library Glossary";
-
-        VocabularyEnricher enricher = new VocabularyEnricher(vocabulary);
-
         return enricher.enrich(value);
-
     }
 
     private HierarchicalConfiguration getConfig(Process process) {
