@@ -1,13 +1,13 @@
 package de.intranda.goobi.utils;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import io.goobi.workflow.api.vocabulary.helper.ExtendedVocabularyRecord;
 import org.goobi.vocabulary.Field;
 import org.goobi.vocabulary.VocabRecord;
-import org.goobi.vocabulary.Vocabulary;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class VocabularyEnricherTest {
 
@@ -33,32 +33,30 @@ public class VocabularyEnricherTest {
 
     @Test
     public void test() {
-        VocabRecord bentschen = createRecord("Bentschen", "Bentschen", "Der Ort Namens Bentschen");
-        VocabRecord altBentschen = createRecord("Alt-Bentschen", "Alt-Bentschen", "Der Ortsteil Alt-Bentschen");
-        VocabRecord neuBentschen = createRecord("Neu-Bentschen", "Neu-Bentschen", "Der Ortsteil Neu-Bentschen");
+        ExtendedVocabularyRecord bentschen = createRecord("Bentschen", "Bentschen", "Der Ort Namens Bentschen");
+        ExtendedVocabularyRecord altBentschen = createRecord("Alt-Bentschen", "Alt-Bentschen", "Der Ortsteil Alt-Bentschen");
+        ExtendedVocabularyRecord neuBentschen = createRecord("Neu-Bentschen", "Neu-Bentschen", "Der Ortsteil Neu-Bentschen");
 
-        Vocabulary vocab = new Vocabulary();
-        vocab.setRecords(new ArrayList<>());
-        vocab.getRecords().add(bentschen);
-        vocab.getRecords().add(neuBentschen);
-        vocab.getRecords().add(altBentschen);
+        List<ExtendedVocabularyRecord> records = List.of(bentschen, altBentschen, neuBentschen);
 
         String text = "Ich ging von Neu-Bentschen nach Bentschen über AltBentschen. Da hat es lange gedauert bis ich endlich in Bentschen ankam.";
         String expected =
                 "Ich ging von <span>Neu-Bentschen<note><term>Neu-Bentschen</term>Der Ortsteil Neu-Bentschen</note></span> nach <span>Bentschen<note><term>Bentschen</term>Der Ort Namens Bentschen</note></span> über AltBentschen. Da hat es lange gedauert bis ich endlich in <span>Bentschen<note><term>Bentschen</term>Der Ort Namens Bentschen</note></span> ankam.";
 
-//        VocabularyEnricher enricher = new VocabularyEnricher(vocab);
-//
-//        String enrichedtext = enricher.enrich(text);
-//        System.out.println(text);
-//        System.out.println(enrichedtext);
-//        Assert.assertEquals(expected, enrichedtext);
-//
-//        String enrichedTestimony = enricher.enrich(TESTIMONY);
-//        System.out.println(enrichedTestimony);
+        VocabularyEnricher enricher = new VocabularyEnricher();
+        enricher.setVocabularyIdResolver(name -> 1L);
+        enricher.setRecordResolver(id -> records);
+
+        String enrichedtext = enricher.enrich(text);
+        System.out.println(text);
+        System.out.println(enrichedtext);
+        Assert.assertEquals(expected, enrichedtext);
+
+        String enrichedTestimony = enricher.enrich(TESTIMONY);
+        System.out.println(enrichedTestimony);
     }
 
-    private VocabRecord createRecord(String label, String keywords, String description) {
+    private ExtendedVocabularyRecord createRecord(String label, String keywords, String description) {
         Field title = new Field("Title", "", label, null);
         Field key = new Field("Keywords", "", keywords, null);
         Field desc = new Field("Description", "", description, null);
@@ -68,7 +66,8 @@ public class VocabularyEnricherTest {
         fields.add(desc);
         VocabRecord rec = new VocabRecord();
         rec.setFields(fields);
-        return rec;
+//        return rec;
+        return null;
     }
 
 }

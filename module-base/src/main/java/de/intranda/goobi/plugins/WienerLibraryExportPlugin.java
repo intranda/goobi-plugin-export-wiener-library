@@ -84,7 +84,7 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
     private static final String EXPORT_IMAGE_DIRECTORY_SUFFIX = "_tif";
     private static final String GLOSSARY_VOCABULARY_NAME = "Wiener Library Glossary";
 
-    private VocabularyEnricher enricher = new VocabularyEnricher(GLOSSARY_VOCABULARY_NAME);
+    private VocabularyEnricher enricher = new VocabularyEnricher();
 
     private boolean exportWithImages = true;
     private boolean exportFulltext = true;
@@ -123,6 +123,7 @@ public class WienerLibraryExportPlugin extends ExportMets implements IExportPlug
     public boolean startExport(Process process) throws IOException, InterruptedException, DocStructHasNoTypeException, PreferencesException,
             WriteException, MetadataTypeNotAllowedException, ExportFileException, UghHelperException, ReadException, SwapException, DAOException,
             TypeNotAllowedForParentException {
+        enricher.load(GLOSSARY_VOCABULARY_NAME);
 
         myPrefs = process.getRegelsatz().getPreferences();
         String atsPpnBand = process.getTitel();

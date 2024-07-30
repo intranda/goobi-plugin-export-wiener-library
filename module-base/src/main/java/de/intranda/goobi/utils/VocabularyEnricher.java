@@ -3,6 +3,7 @@ package de.intranda.goobi.utils;
 import io.goobi.vocabulary.exchange.Vocabulary;
 import io.goobi.workflow.api.vocabulary.VocabularyAPIManager;
 import io.goobi.workflow.api.vocabulary.helper.ExtendedVocabularyRecord;
+import lombok.Setter;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
 
@@ -12,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,25 +26,31 @@ import java.util.regex.Pattern;
  */
 public class VocabularyEnricher {
     private static final Logger logger = Logger.getLogger(VocabularyEnricher.class);
+    @Setter
+    private Function<String, Long> vocabularyIdResolver = name -> VocabularyAPIManager.getInstance()
+            .vocabularies()
+            .findByName(name)
+            .getId();
+    @Setter
+    private Function<Long, List<ExtendedVocabularyRecord>> recordResolver = id -> VocabularyAPIManager.getInstance()
+            .vocabularyRecords()
+            .list(id)
+            .all()
+            .request()
+            .getContent();
+    private long vocabularyId;
+    private Map<String, ExtendedVocabularyRecord> keywordMapping;
+    private List<String> keywordProcessingOrder;
 
-    private VocabularyAPIManager vocabularyAPIManager = VocabularyAPIManager.getInstance();
-    private final Vocabulary vocabulary;
-    private final Map<String, ExtendedVocabularyRecord> keywordMapping;
-    private final List<String> keywordProcessingOrder;
-
-    public VocabularyEnricher(String vocabulary) {
-        this.vocabulary = vocabularyAPIManager.vocabularies().findByName(vocabulary);
+    public void load(String vocabularyName) {
+        this.vocabularyId = vocabularyIdResolver.apply(vocabularyName);
         this.keywordMapping = generateKeywordMapping();
         this.keywordProcessingOrder = generateKeywordProcessingOrder();
     }
 
     private Map<String, ExtendedVocabularyRecord> generateKeywordMapping() {
         Map<String, ExtendedVocabularyRecord> result = new HashMap<>();
-        List<ExtendedVocabularyRecord> allRecords = vocabularyAPIManager.vocabularyRecords()
-                .list(this.vocabulary.getId())
-                .all()
-                .request()
-                .getContent();
+        List<ExtendedVocabularyRecord> allRecords = recordResolver.apply(this.vocabularyId);
         allRecords.forEach(r -> {
             try {
                 Optional<String> value = r.getFieldValueForDefinitionName("Keywords");
