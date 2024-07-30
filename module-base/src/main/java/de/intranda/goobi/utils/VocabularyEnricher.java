@@ -1,11 +1,8 @@
 package de.intranda.goobi.utils;
 
-import io.goobi.vocabulary.exchange.FieldDefinition;
-import io.goobi.vocabulary.exchange.TranslationInstance;
 import io.goobi.vocabulary.exchange.Vocabulary;
-import io.goobi.vocabulary.exchange.VocabularySchema;
 import io.goobi.workflow.api.vocabulary.VocabularyAPIManager;
-import io.goobi.workflow.api.vocabulary.jsfwrapper.JSFVocabularyRecord;
+import io.goobi.workflow.api.vocabulary.helper.ExtendedVocabularyRecord;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
 
@@ -30,31 +27,29 @@ public class VocabularyEnricher {
 
     private VocabularyAPIManager vocabularyAPIManager = VocabularyAPIManager.getInstance();
     private final Vocabulary vocabulary;
-    private final VocabularySchema schema;
-    private final List<JSFVocabularyRecord> glossaryRecords;
-    private final Map<String, JSFVocabularyRecord> keywordMapping;
+    private final Map<String, ExtendedVocabularyRecord> keywordMapping;
     private final List<String> keywordProcessingOrder;
-    private final long keywordFieldId;
-    private final long titleFieldId;
-    private final long descriptionFieldId;
 
     public VocabularyEnricher(String vocabulary) {
         this.vocabulary = vocabularyAPIManager.vocabularies().findByName(vocabulary);
-        this.schema = vocabularyAPIManager.vocabularySchemas().get(this.vocabulary.getSchemaId());
-        this.glossaryRecords = vocabularyAPIManager.vocabularyRecords().all(this.vocabulary.getId());
-        this.keywordFieldId = findIdOfField(schema, "Keywords");
-        this.titleFieldId = findIdOfField(schema, "Title");
-        this.descriptionFieldId = findIdOfField(schema, "Description");
         this.keywordMapping = generateKeywordMapping();
         this.keywordProcessingOrder = generateKeywordProcessingOrder();
     }
 
-    private Map<String, JSFVocabularyRecord> generateKeywordMapping() {
-        Map<String, JSFVocabularyRecord> result = new HashMap<>();
-        List<JSFVocabularyRecord> allRecords = vocabularyAPIManager.vocabularyRecords().all(this.vocabulary.getId());
+    private Map<String, ExtendedVocabularyRecord> generateKeywordMapping() {
+        Map<String, ExtendedVocabularyRecord> result = new HashMap<>();
+        List<ExtendedVocabularyRecord> allRecords = vocabularyAPIManager.vocabularyRecords()
+                .list(this.vocabulary.getId())
+                .all()
+                .request()
+                .getContent();
         allRecords.forEach(r -> {
-            Optional<String> value = extractField(r, this.keywordFieldId);
-            value.ifPresent(s -> result.putIfAbsent(s, r));
+            try {
+                Optional<String> value = r.getFieldValueForDefinitionName("Keywords");
+                value.ifPresent(v -> result.putIfAbsent(v, r));
+            } catch (RuntimeException e) {
+                // Ignore missing values
+            }
         });
         return result;
     }
@@ -64,14 +59,6 @@ public class VocabularyEnricher {
         //handle long keywords first to handle cases where a keyword is a substring of another one (e.g. 'Bentschen' in 'Neu-Bentschen')
         result.sort( (k1, k2) -> Integer.compare(k2.length(), k1.length()) );
         return result;
-    }
-
-    private long findIdOfField(VocabularySchema schema, String name) {
-        return schema.getDefinitions().stream()
-                .filter(d -> d.getName().equals(name))
-                .map(FieldDefinition::getId)
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Cannot find field \"" + name + "\" in vocabulary \"" + this.vocabulary.getName() + "\""));
     }
 
     /**
@@ -87,9 +74,9 @@ public class VocabularyEnricher {
             String wordRegex = "(?<![a-zA-ZäÄüÜöÖß])({keyword})(?![a-zA-ZäÄüÜöÖß])";
 
             for (String keyword : keywordProcessingOrder) {
-                JSFVocabularyRecord record = keywordMapping.get(keyword);
-                String title = extractField(record, this.titleFieldId).orElse("");
-                String description = extractField(record, this.descriptionFieldId).orElse("");
+                ExtendedVocabularyRecord record = keywordMapping.get(keyword);
+                String title = record.getFieldValueForDefinitionName("Title").orElseThrow();
+                String description = record.getFieldValueForDefinitionName("Description").orElseThrow();
                 String note = "<note><term>" + title + "</term>" + StringEscapeUtils.escapeHtml(description) + "</note>";
                 String regex = wordRegex.replace("{keyword}", keyword);
                 Pattern p = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
@@ -114,15 +101,6 @@ public class VocabularyEnricher {
             logger.error("Can't load vocabulary management", e);
             return text;
         }
-    }
-
-    private Optional<String> extractField(JSFVocabularyRecord record, long fieldId) {
-        return record.getFields().stream()
-                .filter(f -> f.getDefinitionId().equals(fieldId))
-                .flatMap(f -> f.getValues().stream()) // Assume there are no multi-values
-                .flatMap(v -> v.getTranslations().stream()) // Assume there are no translations
-                .map(TranslationInstance::getValue)
-                .findFirst();
     }
 
     private boolean withinLocation(int start, int end, List<TextReplacement> locations) {
