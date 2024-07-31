@@ -25,5 +25,11 @@
       <version>${project.version}</version>
       <classifier>classes</classifier>
     </dependency>
+    <dependency>
+      <groupId>io.goobi.vocabulary</groupId>
+      <artifactId>vocabulary-server-exchange</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
 </project>
