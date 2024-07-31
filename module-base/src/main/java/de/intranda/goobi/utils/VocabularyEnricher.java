@@ -26,18 +26,18 @@ import java.util.regex.Pattern;
  */
 public class VocabularyEnricher {
     private static final Logger logger = Logger.getLogger(VocabularyEnricher.class);
-    @Setter
+
     private Function<String, Long> vocabularyIdResolver = name -> VocabularyAPIManager.getInstance()
             .vocabularies()
             .findByName(name)
             .getId();
-    @Setter
     private Function<Long, List<ExtendedVocabularyRecord>> recordResolver = id -> VocabularyAPIManager.getInstance()
             .vocabularyRecords()
             .list(id)
             .all()
             .request()
             .getContent();
+
     private long vocabularyId;
     private Map<String, ExtendedVocabularyRecord> keywordMapping;
     private List<String> keywordProcessingOrder;

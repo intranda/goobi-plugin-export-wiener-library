@@ -1,14 +1,40 @@
 package de.intranda.goobi.utils;
 
+import de.sub.goobi.config.ConfigurationHelper;
+import de.sub.goobi.forms.SpracheForm;
+import de.sub.goobi.helper.Helper;
+import io.goobi.vocabulary.exchange.FieldDefinition;
+import io.goobi.vocabulary.exchange.Vocabulary;
+import io.goobi.vocabulary.exchange.VocabularyRecord;
+import io.goobi.vocabulary.exchange.VocabularySchema;
+import io.goobi.workflow.api.vocabulary.FieldTypeAPI;
+import io.goobi.workflow.api.vocabulary.VocabularyAPI;
+import io.goobi.workflow.api.vocabulary.VocabularyAPIManager;
+import io.goobi.workflow.api.vocabulary.VocabularyRecordAPI;
+import io.goobi.workflow.api.vocabulary.VocabularySchemaAPI;
+import io.goobi.workflow.api.vocabulary.hateoas.VocabularyRecordPageResult;
+import io.goobi.workflow.api.vocabulary.helper.ExtendedVocabulary;
 import io.goobi.workflow.api.vocabulary.helper.ExtendedVocabularyRecord;
-import org.goobi.vocabulary.Field;
-import org.goobi.vocabulary.VocabRecord;
+import org.easymock.EasyMock;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({ ConfigurationHelper.class, VocabularyAPIManager.class, Helper.class })
+@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*", "jdk.internal.reflect.*", "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*",
+        "org.w3c.*", "javax.crypto.*", "javax.crypto.JceSecurity" })
 public class VocabularyEnricherTest {
 
     private static final String TESTIMONY = "<p><span style=\"text-decoration: underline;\">The &ldquo;Polenaktion&rdquo;</span></p>\n"
@@ -31,21 +57,80 @@ public class VocabularyEnricherTest {
             + "<p><a href=\"#_ftnref1\" name=\"_ftn1\">[1]</a> I am not sure if this should be kept in German as instructed (retain original names and titles), or translated?</p>\n"
             + "<p><a href=\"#_ftnref2\" name=\"_ftn2\">[2]</a> It is not clear if this is am or pm</p>";
 
-    @Test
-    public void test() {
+
+    private long idCounter;
+    private VocabularySchema vocabularySchema;
+
+    @Before
+    public void setUp() throws Exception {
+        SpracheForm spracheForm = EasyMock.createMock(SpracheForm.class);
+        EasyMock.expect(spracheForm.getLocale()).andReturn(Locale.ENGLISH).anyTimes();
+        EasyMock.replay(spracheForm);
+
+        PowerMock.mockStatic(Helper.class);
+        EasyMock.expect(Helper.getCurrentUser()).andReturn(null).anyTimes();
+        EasyMock.expect(Helper.getLanguageBean()).andReturn(spracheForm).anyTimes();
+        PowerMock.replay(Helper.class);
+
+        VocabularySchemaAPI vocabularySchemaAPI = EasyMock.createMock(VocabularySchemaAPI.class);
+        vocabularySchema = new VocabularySchema();
+        vocabularySchema.setId(idCounter++);
+        vocabularySchema.setDefinitions(prepareSchemaDefinitions());
+        vocabularySchema.getDefinitions().forEach(d ->
+                EasyMock.expect(vocabularySchemaAPI.getDefinition(d.getId())).andReturn(d).anyTimes()
+        );
+        EasyMock.expect(vocabularySchemaAPI.get(vocabularySchema.getId())).andReturn(vocabularySchema).anyTimes();
+        EasyMock.expect(vocabularySchemaAPI.getSchema((VocabularyRecord) EasyMock.anyObject())).andReturn(vocabularySchema).anyTimes();
+        EasyMock.replay(vocabularySchemaAPI);
+
+        FieldTypeAPI fieldTypeAPI = EasyMock.createMock(FieldTypeAPI.class);
+        EasyMock.replay(fieldTypeAPI);
+
+        VocabularyAPI vocabularyAPI = EasyMock.createMock(VocabularyAPI.class);
+        Vocabulary vocabulary = new Vocabulary();
+        vocabulary.setName("Glossary");
+        vocabulary.setId(idCounter++);
+        vocabulary.setSchemaId(vocabularySchema.getId());
+        EasyMock.expect(vocabularyAPI.findByName("Glossary")).andReturn(new ExtendedVocabulary(vocabulary)).anyTimes();
+        EasyMock.replay(vocabularyAPI);
+
+        VocabularyRecordAPI vocabularyRecordAPI = EasyMock.createMock(VocabularyRecordAPI.class);
+
+        PowerMock.mockStatic(VocabularyAPIManager.class);
+        VocabularyAPIManager vocabularyAPIManager = EasyMock.createMock(VocabularyAPIManager.class);
+        EasyMock.expect(VocabularyAPIManager.getInstance()).andReturn(vocabularyAPIManager).anyTimes();
+        EasyMock.expect(vocabularyAPIManager.fieldTypes()).andReturn(fieldTypeAPI).anyTimes();
+        EasyMock.expect(vocabularyAPIManager.vocabularies()).andReturn(vocabularyAPI).anyTimes();
+        EasyMock.expect(vocabularyAPIManager.vocabularySchemas()).andReturn(vocabularySchemaAPI).anyTimes();
+        EasyMock.expect(vocabularyAPIManager.vocabularyRecords()).andReturn(vocabularyRecordAPI).anyTimes();
+        PowerMock.replay(VocabularyAPIManager.class);
+        EasyMock.replay(vocabularyAPIManager);
+
         ExtendedVocabularyRecord bentschen = createRecord("Bentschen", "Bentschen", "Der Ort Namens Bentschen");
         ExtendedVocabularyRecord altBentschen = createRecord("Alt-Bentschen", "Alt-Bentschen", "Der Ortsteil Alt-Bentschen");
         ExtendedVocabularyRecord neuBentschen = createRecord("Neu-Bentschen", "Neu-Bentschen", "Der Ortsteil Neu-Bentschen");
 
-        List<ExtendedVocabularyRecord> records = List.of(bentschen, altBentschen, neuBentschen);
+        VocabularyRecordPageResult resultPage = new VocabularyRecordPageResult();
+        resultPage.setContent(List.of(bentschen, altBentschen, neuBentschen));
+        VocabularyRecordAPI.VocabularyRecordQueryBuilder query = EasyMock.createMock(VocabularyRecordAPI.VocabularyRecordQueryBuilder.class);
+        EasyMock.expect(query.search(EasyMock.anyString())).andReturn(query).anyTimes();
+        EasyMock.expect(query.all()).andReturn(query).anyTimes();
+        EasyMock.expect(query.request()).andReturn(resultPage).anyTimes();
+        EasyMock.replay(query);
+        EasyMock.expect(vocabularyRecordAPI.list(EasyMock.anyLong())).andReturn(query).anyTimes();
+        EasyMock.replay(vocabularyRecordAPI);
+    }
+
+    @Test
+    public void test() {
+        idCounter = 0;
 
         String text = "Ich ging von Neu-Bentschen nach Bentschen über AltBentschen. Da hat es lange gedauert bis ich endlich in Bentschen ankam.";
         String expected =
                 "Ich ging von <span>Neu-Bentschen<note><term>Neu-Bentschen</term>Der Ortsteil Neu-Bentschen</note></span> nach <span>Bentschen<note><term>Bentschen</term>Der Ort Namens Bentschen</note></span> über AltBentschen. Da hat es lange gedauert bis ich endlich in <span>Bentschen<note><term>Bentschen</term>Der Ort Namens Bentschen</note></span> ankam.";
 
         VocabularyEnricher enricher = new VocabularyEnricher();
-        enricher.setVocabularyIdResolver(name -> 1L);
-        enricher.setRecordResolver(id -> records);
+        enricher.load("Glossary");
 
         String enrichedtext = enricher.enrich(text);
         System.out.println(text);
@@ -56,18 +141,40 @@ public class VocabularyEnricherTest {
         System.out.println(enrichedTestimony);
     }
 
-    private ExtendedVocabularyRecord createRecord(String label, String keywords, String description) {
-        Field title = new Field("Title", "", label, null);
-        Field key = new Field("Keywords", "", keywords, null);
-        Field desc = new Field("Description", "", description, null);
-        List<Field> fields = new ArrayList<>();
-        fields.add(title);
-        fields.add(key);
-        fields.add(desc);
-        VocabRecord rec = new VocabRecord();
-        rec.setFields(fields);
-//        return rec;
-        return null;
+    private List<FieldDefinition> prepareSchemaDefinitions() {
+        List<FieldDefinition> result = new LinkedList<>();
+        result.add(createFieldDefinition("Title", true, true));
+        result.add(createFieldDefinition("Keywords", false, true));
+        result.add(createFieldDefinition("Description", false, false));
+        return result;
     }
 
+    private FieldDefinition createFieldDefinition(String name, boolean mainValue, boolean unique) {
+        FieldDefinition result = new FieldDefinition();
+        result.setId(idCounter++);
+        result.setSchemaId(vocabularySchema.getId());
+        result.setName(name);
+        result.setMainEntry(mainValue);
+        result.setTitleField(mainValue);
+        result.setUnique(unique);
+        result.setTranslationDefinitions(Collections.emptySet());
+        return result;
+    }
+
+    private ExtendedVocabularyRecord createRecord(String label, String keywords, String description) {
+        ExtendedVocabularyRecord result = newEmptyRecord();
+        result.getFieldForDefinitionName("Title").orElseThrow().setFieldValue(label);
+        result.getFieldForDefinitionName("Keywords").orElseThrow().setFieldValue(keywords);
+        result.getFieldForDefinitionName("Description").orElseThrow().setFieldValue(description);
+        return result;
+    }
+
+    private ExtendedVocabularyRecord newEmptyRecord() {
+        VocabularyRecord record = new VocabularyRecord();
+        record.setVocabularyId(1L);
+        record.setParentId(null);
+        record.setMetadata(false);
+        record.setFields(new HashSet<>());
+        return new ExtendedVocabularyRecord(record);
+    }
 }
