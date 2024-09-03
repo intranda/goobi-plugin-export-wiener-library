@@ -8,6 +8,7 @@ import io.goobi.vocabulary.exchange.Vocabulary;
 import io.goobi.vocabulary.exchange.VocabularyRecord;
 import io.goobi.vocabulary.exchange.VocabularySchema;
 import io.goobi.workflow.api.vocabulary.FieldTypeAPI;
+import io.goobi.workflow.api.vocabulary.LanguageAPI;
 import io.goobi.workflow.api.vocabulary.VocabularyAPI;
 import io.goobi.workflow.api.vocabulary.VocabularyAPIManager;
 import io.goobi.workflow.api.vocabulary.VocabularyRecordAPI;
@@ -83,6 +84,9 @@ public class VocabularyEnricherTest {
         EasyMock.expect(vocabularySchemaAPI.getSchema((VocabularyRecord) EasyMock.anyObject())).andReturn(vocabularySchema).anyTimes();
         EasyMock.replay(vocabularySchemaAPI);
 
+        LanguageAPI languageAPI = EasyMock.createMock(LanguageAPI.class);
+        EasyMock.replay(languageAPI);
+
         FieldTypeAPI fieldTypeAPI = EasyMock.createMock(FieldTypeAPI.class);
         EasyMock.replay(fieldTypeAPI);
 
@@ -99,6 +103,7 @@ public class VocabularyEnricherTest {
         PowerMock.mockStatic(VocabularyAPIManager.class);
         VocabularyAPIManager vocabularyAPIManager = EasyMock.createMock(VocabularyAPIManager.class);
         EasyMock.expect(VocabularyAPIManager.getInstance()).andReturn(vocabularyAPIManager).anyTimes();
+        EasyMock.expect(vocabularyAPIManager.languages()).andReturn(languageAPI).anyTimes();
         EasyMock.expect(vocabularyAPIManager.fieldTypes()).andReturn(fieldTypeAPI).anyTimes();
         EasyMock.expect(vocabularyAPIManager.vocabularies()).andReturn(vocabularyAPI).anyTimes();
         EasyMock.expect(vocabularyAPIManager.vocabularySchemas()).andReturn(vocabularySchemaAPI).anyTimes();
